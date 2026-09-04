@@ -1,17 +1,16 @@
-# Estado de producción · 2026-09-03
+# Estado de producción · 2026-09-04
 
-- Fuente consolidada, sin capas de compatibilidad, implementaciones heredadas ni dependencias de fuentes anteriores en el frontend activo.
-- `index.html` y `totus-suite.html` idénticos.
-- Sin `alert()`, `confirm()` o `prompt()` nativos en Central/Precios.
-- Sin `service_role`, secretos administrativos, TODO/FIXME, código QA o scripts de prueba en el paquete de producción.
-- Responsive y navegación revisados desde 1920 px hasta 320 px.
-- Calendario revisado como cuadrícula semanal/mensual real, con casillas por día y agenda accesible al seleccionar una fecha.
-- Relojes Jornada / Tarea / Parada compactos, diferenciados por estado y revisados en escritorio, tablet y móvil.
-- Formularios y pantallas densas replegados o compactados cuando no necesitan estar abiertos de forma permanente.
-- Informes principales compactados; desgloses y exportaciones secundarias quedan disponibles bajo demanda.
-- Backup portable: datos operativos, configuración, histórico, auditoría, evidencias, biblioteca y avatares; checksum SHA-256 y fallo explícito si falta cualquier dato/binario necesario.
-- Restauración validada mediante lista cerrada de tablas y copia de seguridad automática previa.
-- Supabase sin relojes/fichajes abiertos ni residuos QA detectados en la auditoría final.
-- QA de cierre sobre la fuente actual: 516 comprobaciones automáticas PASS, además de revisión visual y controles reales de Supabase.
+- Interfaz reconstruida tomando `public(1).rar` como referencia visual oficial: navegación jerárquica, sidebar oscuro, área de trabajo clara, densidad contenida, formularios y tablas legibles.
+- `index.html` y `totus-suite.html` se mantienen idénticos.
+- Frontend visual consolidado: solo `totus-team.css` como base y `totus-shell.css` como shell de presentación. Las capas visuales antiguas y el archivo temporal de afinado se han eliminado.
+- Relojes de jornada, trabajo y parada personal permanecen visibles; las acciones detalladas se abren bajo demanda para no ocupar permanentemente la pantalla.
+- Acciones rápidas diseñadas para operaciones habituales en 1–2 pasos, con motivos personales y laborales separados.
+- Centros de trabajo ampliados a centros/proyectos: tiendas físicas, proyectos digitales, clientes/externos y futuros negocios; TotusCode está contemplado como proyecto digital/híbrido.
+- Catálogo de tareas ampliado para prospección/leads, llamadas comerciales, visitas a clientes, web/desarrollo, diseño, marketing/contenidos, representación de marcas y gestión digital.
+- Backup portable protege datos operativos, configuración, históricos, auditorías, evidencias, biblioteca y avatares; restauración fusionada y rollback exacto están separados, con copia previa y verificaciones.
+- El rollback exacto valida previamente las cuentas Supabase Auth y se bloquea antes de modificar datos si falta alguna cuenta necesaria.
+- Invitaciones y recuperación de usuarios apuntan a Totus Central; no al antiguo `totus-pricing-demo`.
+- QA automática incluye sintaxis/estructura y una batería Chromium de 16 pantallas × 5 viewports (80 renderizados) con detección de overflow, microtexto, tarjetas desproporcionadas y errores de navegador.
+- La primera pasada visual detectó 23 incidencias reales y generó correcciones. La ronda posterior a la consolidación se ejecuta antes de considerar cerrada la auditoría visual.
 
-Este paquete contiene únicamente los archivos necesarios para desplegar la aplicación y documentación mínima de producción.
+Este estado no declara el producto finalizado: la revisión funcional y de permisos por rol continúa hasta cerrar todas las simulaciones solicitadas.
