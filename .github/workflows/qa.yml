@@ -41,6 +41,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Render every main screen
         run: node qa/visual-qa.mjs
+      - name: Simulate every role
+        run: node qa/role-visual-qa.mjs
       - name: Keep visual evidence
         if: always()
         uses: actions/upload-artifact@v4
