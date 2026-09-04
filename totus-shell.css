@@ -13,3 +13,44 @@ label{margin-bottom:6px;color:#475569;font-size:11px;font-weight:800;text-transf
 @media(max-width:1180px){.top{width:min(320px,calc(100vw - 44px));transform:translateX(-102%);transition:transform .22s ease;box-shadow:18px 0 55px rgba(15,23,42,.28)}body.shell-nav-open .top{transform:translateX(0)}body.shell-nav-open .shell-menu-backdrop{display:block}.shell-menu-toggle{display:inline-flex;align-items:center}.shell-topbar,.status-dock{margin-left:0}.shell-topbar{height:auto;min-height:62px;padding:10px 14px}.shell-role-chip{display:none}.status-dock{height:58px}.dock-inner{display:flex;overflow-x:auto;gap:7px;padding:6px 10px}.dock-item{flex:0 0 215px}.dock-actions{flex:0 0 auto;position:sticky;right:0;padding-left:6px;background:#fff}.subnav-wrap{display:block;height:44px;background:#fff;border-bottom:1px solid rgba(15,23,42,.08)}.subnav{height:44px;padding:5px 10px}.side-subnav-wrap{display:none!important}.main{width:100%;height:calc(100vh - 62px - 58px - 44px);margin-left:0;padding:16px 14px}.iframe-shell{left:0;top:calc(62px + 58px + 44px)}.quick-clock-bar{top:132px;right:12px;width:min(820px,calc(100vw - 24px));max-height:calc(100vh - 144px)}.panel-primary-grid{grid-template-columns:1fr}.workspace-editor-primary{grid-template-columns:1fr 1fr}.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.shell-topbar{padding:9px 10px}.shell-topbar h1{font-size:18px}.shell-top-actions .shell-chip{display:none}.dock-main span{display:none}.dock-item{flex-basis:190px}.dock-time{min-width:70px;font-size:12px}.dock-actions #taskMainBtn{display:none!important}.main{padding:12px 10px}.head{flex-direction:column;align-items:stretch;gap:10px}.head h1{font-size:25px}.head>.actions{width:100%}.card{padding:14px}.g2,.g3,.g4{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid{grid-template-columns:1fr 1fr}.span2,.span4{grid-column:1/-1}.compact-status-row,.workspace-grid,.workspace-editor-primary,.backup-coverage,.restore-choice{grid-template-columns:1fr}.modal-backdrop{padding:9px!important}.modal{width:calc(100vw - 18px)!important;max-width:none!important;max-height:90vh!important;padding:14px!important;border-radius:18px!important}.quick-clock-bar{top:auto;right:8px;left:8px;bottom:8px;width:auto;max-height:72vh}.quick-clock-grid{grid-template-columns:1fr}.subnav-buttons{display:none}.subnav-mobile{display:block;width:100%;min-height:34px;border:1px solid var(--cd-border);border-radius:10px;background:#fff;color:var(--cd-text);font-size:11px;padding:0 9px}.table-wrap table{min-width:660px}}
 @media(max-width:430px){.shell-topbar p{display:none}.status-dock{height:56px}.dock-item{flex-basis:174px}.dock-icon{display:none}.dock-time{min-width:62px;font-size:11px}.dock-actions #alarmTopBtn{display:none}.main{height:calc(100vh - 62px - 56px - 44px);padding:10px 8px}.stats{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}}
+
+/* Totus Central · afinado final contra public(1).rar
+   Una única capa de corrección medible para eliminar regresiones detectadas por Chromium. */
+
+/* Ayuda de página: nunca debe crear una fila vacía con un ? aislado. */
+.head{position:relative}
+.head:has(> .actions > .page-help:only-child){padding-right:42px}
+.head>.actions:has(> .page-help:only-child){position:absolute;right:0;top:24px;width:auto!important;margin:0!important}
+.page-help{width:30px!important;height:30px!important;min-height:30px!important;padding:0!important;border-radius:50%!important}
+
+/* Legibilidad mínima. La base visual no usa microtexto operativo. */
+#main small{font-size:10px!important}
+#main .calendar-head div,#main .calendar-day-head span,#main .calendar-chip-title,#main .calendar-chip-meta,#main .calendar-empty,#main .calendar-more,#main .calendar-compact-count,#main .calendar-list-row .badge,#main .price-preview small,#main .panel-employee-switch label,#main .leave-stats small,#main .leave-stats span,#main .leave-row .leave-kind,#main .alarm-controls label,#main .alarm-row .grow span,#main .alarm-row>small,#main .mini-week span,#main .mini-day i,#main .mini-legend,#main .calendar-special,#main .calendar-special b,#main .file-choice-name,#main .backup-scope-line span,#main .formula-note{font-size:10px!important;line-height:1.35}
+#main .calendar-more{min-height:30px!important}.calendar-compact-count{min-width:16px!important;height:16px!important}
+
+/* El contenido de un details cerrado no cuenta como superficie visual. */
+details:not([open])>.audit-card{display:none!important}
+
+@media(max-width:760px){
+  .head h1{font-size:22px!important;line-height:1.12!important}
+  .head:has(> .actions > .page-help:only-child){padding-right:38px}
+  .head>.actions:has(> .page-help:only-child){top:20px}
+  .page-help{width:28px!important;height:28px!important;min-height:28px!important}
+
+  /* Los controles de reloj dejan de taparse entre sí: todos viven en el carril desplazable. */
+  .dock-actions{position:static!important;right:auto!important;padding-left:0!important;background:#fff!important}
+
+  /* Una lista larga de tareas no es una caja gigante: las tareas son las unidades visuales. */
+  #main .card:has(> .section-head + .list .task-card){padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+  #main .card:has(> .section-head + .list .task-card)>.section-head{padding:0 2px 3px}
+
+  /* Formularios largos se leen por bloques, como en la referencia, no dentro de una caja de más de 1.000 px. */
+  #main .card:has(> .purchase-form),#main .task-editor{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+  #main .card:has(> .purchase-form)>.section-head,#main .task-editor>.section-head{padding:2px 2px 4px}
+  #main .purchase-form .form-section,#main .task-editor .form-section{margin-top:10px;padding:13px!important;border:1px solid #e2e8f0!important;border-radius:15px!important;background:#fff!important;box-shadow:0 5px 16px rgba(15,23,42,.035)}
+}
+
+@media(max-width:430px){
+  .head h1{font-size:21px!important}
+  .head p{font-size:12px!important}
+}
