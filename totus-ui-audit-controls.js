@@ -1,4 +1,4 @@
-/* Totus Central · UX audit controls V20.2
+/* Totus Central · UX audit controls V20.3
    Claridad de relojes, históricos y obligatoriedad. No cambia datos ni RLS. */
 (function(){
   function setTextIfChanged(el,text){if(el&&el.textContent!==text)el.textContent=text}
@@ -10,6 +10,17 @@
   }
   const originalTick=window.tick;
   if(typeof originalTick==='function')window.tick=function(){const r=originalTick.apply(this,arguments);currentWorkLabels();return r};
+
+  function todayTrailHtml(uid){
+    const [from,to]=localDayBounds(dayIsoLocal(new Date())),now=new Date(),items=[];
+    db.taskTimes.filter(x=>x.user_id===uid&&new Date(x.started_at)<to&&new Date(x.stopped_at||now)>=from).forEach(x=>{const t=db.tasks.find(t=>t.id===x.task_id);items.push({at:x.started_at,end:x.stopped_at,kind:'work',badge:'TAREA',title:t?.title||'Tarea',detail:locationName(t?.location_id)})});
+    db.interruptions.filter(x=>x.user_id===uid&&new Date(x.started_at)<to&&new Date(x.ended_at||now)>=from).forEach(x=>{const t=db.tasks.find(t=>t.id===x.task_id);items.push({at:x.started_at,end:x.ended_at,kind:'interrupt',badge:'LABORAL · COMPUTA',title:interruptionName(x.reason_code),detail:[t?.title,x.reason_note].filter(Boolean).join(' · ')})});
+    db.breaks.filter(x=>x.user_id===uid&&!x.counts_as_work&&new Date(x.started_at)<to&&new Date(x.ended_at||now)>=from).forEach(x=>items.push({at:x.started_at,end:x.ended_at,kind:'personal',badge:'PERSONAL · NO COMPUTA',title:breakName(x.break_type),detail:x.notes||''}));
+    items.sort((a,b)=>new Date(b.at)-new Date(a.at));
+    return `<div class="card panel-widget today-trail"><div class="section-head"><div><div class="eyebrow">Rastro de hoy</div><h3>En qué se ha ido el tiempo</h3><div class="small">Cada tramo queda separado como tarea, interrupción laboral o parada personal.</div></div><button class="ghost" onclick="goSub('reports')">Ver informe</button></div><div class="today-trail-list">${items.slice(0,18).map(x=>`<div class="trail-row ${x.kind}"><div class="trail-time"><b>${new Date(x.at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</b><span>${x.end?new Date(x.end).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'ahora'}</span></div><div class="trail-body"><span class="trail-badge">${esc(x.badge)}</span><b>${esc(x.title)}</b>${x.detail?`<small>${esc(x.detail)}</small>`:''}</div><strong>${fmtDur(elapsedSec(x.at,x.end))}</strong></div>`).join('')||'<div class="empty-state"><b>Aún sin actividad</b><span>Los tramos aparecerán aquí según vayas trabajando.</span></div>'}</div></div>`;
+  }
+  const basePanelNow=window.panelNowHtml;
+  if(typeof basePanelNow==='function')window.panelNowHtml=function(){return basePanelNow.apply(this,arguments)+todayTrailHtml(me().id)};
 
   function headerIndex(table,names){const th=[...table.querySelectorAll('thead th')].map(x=>x.textContent.trim().toLowerCase());return th.findIndex(x=>names.some(n=>x===n||x.startsWith(n)))}
   function addHistoryFilter(details){
