@@ -2,7 +2,7 @@ name: Totus QA
 
 on:
   push:
-    branches: [main]
+    branches: [main, integracion-visual-global-2026-09-04]
   workflow_dispatch:
 
 permissions:
