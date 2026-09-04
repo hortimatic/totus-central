@@ -1,0 +1,6 @@
+/* Totus Central · UX audit controls V20.1 */
+.history-user-filter{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:0 0 12px;padding:10px 11px;border:1px solid #e1e7ef;border-radius:11px;background:#f8fafc}.history-user-filter label{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0}.history-user-filter select{min-width:220px}.history-user-filter>span{color:#64748b;font-size:10px;font-weight:800;white-space:nowrap}
+.required-control{border-left-width:3px}.required-control:invalid{border-left-color:#dc2626}.required-control:valid{border-left-color:#16a34a}
+.role-help-mini{display:inline-flex;align-items:center;min-height:20px;margin-top:3px;padding:2px 6px;border:1px solid rgba(255,255,255,.13);border-radius:7px;background:rgba(255,255,255,.04);color:#b7c8dd;font-size:9px;font-weight:800}.role-help-mini:hover{background:rgba(255,255,255,.08);color:#fff}
+#taskDock.dock-alert .dock-main b{color:#9a5b00}#breakDock.dock-alert .dock-main b{color:#b45309}
+@media(max-width:620px){.history-user-filter{align-items:stretch;flex-direction:column}.history-user-filter label{display:grid;grid-template-columns:auto 1fr}.history-user-filter select{min-width:0;width:100%;grid-column:1/-1}.history-user-filter>span{align-self:flex-end}}
