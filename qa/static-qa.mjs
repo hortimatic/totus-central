@@ -31,8 +31,9 @@ for(const m of all.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:a
 const eventSources=[index,...loadedJs.map(read),read('pricing.html')].join('\n');
 const handlers=new Set();
 for(const m of eventSources.matchAll(/on(?:click|change|input|submit|blur|focus|keydown|keyup)=["'`]([A-Za-z_$][\w$]*)\s*\(/g))handlers.add(m[1]);
+const nonHandlers=new Set(['if','for','while','switch','return','typeof','void','new']);
 const browserBuiltins=new Set(['alert','confirm','prompt','open','close','print','setTimeout','setInterval']);
-const missing=[...handlers].filter(x=>!defs.has(x)&&!browserBuiltins.has(x));
+const missing=[...handlers].filter(x=>!nonHandlers.has(x)&&!defs.has(x)&&!browserBuiltins.has(x));
 assert(missing.length===0,`Handlers visibles tienen función: ${missing.length?missing.join(', '):'OK'}`);
 
 const ids=[...index.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
