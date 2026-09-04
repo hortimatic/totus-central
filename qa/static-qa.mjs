@@ -1,60 +1,36 @@
 import fs from 'node:fs';
 import path from 'node:path';
-
-const root=process.cwd();
-const fail=[];
-const ok=[];
-const read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const exists=p=>fs.existsSync(path.join(root,p));
-const assert=(cond,msg)=>cond?ok.push(msg):fail.push(msg);
-
-for(const f of ['index.html','totus-suite.html','totus-team.js','totus-team.css','totus-ui.css','totus-ui.js','totus-quick-controls.js','totus-quick-controls.css','totus-workspaces.js','totus-backup.js','pricing.html'])assert(exists(f),`Existe ${f}`);
+const root=process.cwd(),fail=[],ok=[];
+const read=p=>fs.readFileSync(path.join(root,p),'utf8'),exists=p=>fs.existsSync(path.join(root,p)),assert=(c,m)=>c?ok.push(m):fail.push(m);
+const required=['index.html','totus-suite.html','totus-team.js','totus-team.css','totus-shell.css','totus-ui.js','totus-quick-controls.js','totus-pricing-shell.js','totus-workspaces.js','totus-backup.js','pricing.html'];
+for(const f of required)assert(exists(f),`Existe ${f}`);
+for(const f of ['totus-ui-v19.css','totus-ui-v19.js','totus-navigation-v21.js','totus-quick-controls.css'])assert(!exists(f),`Retirada capa visual heredada: ${f}`);
 if(fail.length){console.error(fail.join('\n'));process.exit(1)}
-
 const index=read('index.html'),suite=read('totus-suite.html');
 assert(index===suite,'index.html y totus-suite.html son idénticos');
-assert(!/totus-ui-audit|totus-field-help-v23/.test(index),'No se cargan capas visuales antiguas');
-
+assert(!/totus-ui-v19|totus-navigation-v21|totus-quick-controls\.css|href="totus-ui\.css"/.test(index),'El shell activo no carga capas visuales heredadas');
+assert(/href="totus-shell\.css"/.test(index),'El shell visual único está cargado');
 const refs=[...index.matchAll(/(?:src|href)="([^"]+)"/g)].map(m=>m[1]).filter(x=>!x.startsWith('http')&&!x.startsWith('about:')&&!x.startsWith('#'));
 for(const ref of refs)assert(exists(ref.replace(/^\.\//,'')),`Referencia local disponible: ${ref}`);
 assert(new Set(refs).size===refs.length,'No hay CSS/JS locales cargados por duplicado');
-
+const cssRefs=[...index.matchAll(/<link[^>]+href="([^"]+\.css)"/g)].map(m=>m[1]);
+assert(cssRefs.length===2&&cssRefs.includes('totus-team.css')&&cssRefs.includes('totus-shell.css'),'Solo se cargan CSS base + shell visual');
 const loadedJs=[...index.matchAll(/<script[^>]+src="([^"]+\.js)"/g)].map(m=>m[1]).filter(x=>!x.startsWith('http')).map(x=>x.replace(/^\.\//,''));
-const sourceFiles=[...new Set([...loadedJs,'pricing.html'])];
-let all='';for(const f of sourceFiles)all+='\n'+read(f);
+const sourceFiles=[...new Set([...loadedJs,'pricing.html'])];let all='';for(const f of sourceFiles)all+='\n'+read(f);
 const defs=new Set();
 for(const m of all.matchAll(/\b(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/g))defs.add(m[1]);
 for(const m of all.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?function\b/g))defs.add(m[1]);
 for(const m of all.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>/g))defs.add(m[1]);
 for(const m of all.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)/g))defs.add(m[1]);
-
-const eventSources=[index,...loadedJs.map(read),read('pricing.html')].join('\n');
-const handlers=new Set();
+const eventSources=[index,...loadedJs.map(read),read('pricing.html')].join('\n'),handlers=new Set();
 for(const m of eventSources.matchAll(/on(?:click|change|input|submit|blur|focus|keydown|keyup)=["'`]([A-Za-z_$][\w$]*)\s*\(/g))handlers.add(m[1]);
-const nonHandlers=new Set(['if','for','while','switch','return','typeof','void','new']);
-const browserBuiltins=new Set(['alert','confirm','prompt','open','close','print','setTimeout','setInterval']);
-const missing=[...handlers].filter(x=>!nonHandlers.has(x)&&!defs.has(x)&&!browserBuiltins.has(x));
-assert(missing.length===0,`Handlers visibles tienen función: ${missing.length?missing.join(', '):'OK'}`);
-
-const ids=[...index.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
-const dupIds=[...new Set(ids.filter((x,i)=>ids.indexOf(x)!==i))];
-assert(dupIds.length===0,`Sin IDs duplicados en shell: ${dupIds.length?dupIds.join(', '):'OK'}`);
-
-const ui=read('totus-ui.css');
-assert(/max-height:84vh/.test(ui),'Modales tienen altura máxima');
-assert(/overflow-x:auto/.test(ui),'Móvil dispone de carriles horizontales compactos');
-assert(/\.today-trail,.zone-guide\{display:none/.test(ui),'Se eliminan bloques de auditoría visual que añadían ruido');
-
-const backup=read('totus-backup.js'),team=read('totus-team.js');
-assert(/runLoadedBackupRestore\('exact'\)/.test(backup),'Rollback exacto disponible');
-assert(/createSafetyBackup/.test(backup),'Restauración exige copia previa');
-assert(/verifyRestoredBackup/.test(backup),'Restauración verifica integridad');
-assert(/BACKUP_FILE_BUCKETS=\['task-evidence','internal-library','user-avatars'\]/.test(team),'Backup incluye evidencias, biblioteca y avatares');
-assert(/qAllBackup/.test(team),'Backup usa paginación completa');
-
-const workspaces=read('totus-workspaces.js');
-assert(/digital_project/.test(workspaces)&&/client_site/.test(workspaces),'Centros soportan proyectos digitales y clientes');
-assert(/if\(!isAdmin\(\)\)/.test(workspaces),'Configuración de centros restringida en interfaz');
-
-if(fail.length){console.error('\nQA FALLIDA');for(const x of fail)console.error('✗ '+x);console.error(`\n${ok.length} comprobaciones superadas antes del fallo.`);process.exit(1)}
-console.log(`QA OK · ${ok.length} comprobaciones`);for(const x of ok)console.log('✓ '+x);
+const nonHandlers=new Set(['if','for','while','switch','return','typeof','void','new']),browserBuiltins=new Set(['alert','confirm','prompt','open','close','print','setTimeout','setInterval']);
+const missing=[...handlers].filter(x=>!nonHandlers.has(x)&&!defs.has(x)&&!browserBuiltins.has(x));assert(missing.length===0,`Handlers visibles tienen función: ${missing.length?missing.join(', '):'OK'}`);
+const ids=[...index.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]),dupIds=[...new Set(ids.filter((x,i)=>ids.indexOf(x)!==i))];assert(dupIds.length===0,`Sin IDs duplicados en shell: ${dupIds.length?dupIds.join(', '):'OK'}`);
+const shell=read('totus-shell.css'),ui=read('totus-ui.js'),pricingShell=read('totus-pricing-shell.js');
+assert((shell.match(/{/g)||[]).length===(shell.match(/}/g)||[]).length,'CSS del shell tiene llaves equilibradas');
+assert(/--cd-sidebar-width:282px/.test(shell),'Sidebar sigue la proporción de la base visual');assert(/--cd-topbar-height:68px/.test(shell),'Topbar sigue la altura de la base visual');assert(/--cd-control-height:42px/.test(shell),'Controles mantienen altura legible de 42px');assert(/font-size:14px/.test(shell),'El shell mantiene tipografía legible');assert(/\.modal\{[^}]*max-height:86vh/s.test(shell),'Modales están contenidos en pantalla');assert(/\.quick-clock-bar\{[^}]*display:none/s.test(shell)&&/\.quick-clock-bar\.shell-open/.test(shell),'Acciones detalladas no crean una segunda barra permanente');assert(/@media\(max-width:1180px\)/.test(shell)&&/translateX\(-102%\)/.test(shell),'Sidebar móvil funciona como cajón lateral');assert(/max-width:1680px/.test(shell),'Pantallas anchas mantienen ancho útil razonable');assert(!/font-size:(?:7|8|9)px/.test(shell),'El shell no usa texto microscópico');
+assert(/renderSideSubnav/.test(ui)&&/side-subnav-wrap/.test(ui),'Subnavegación jerárquica vive dentro del sidebar');assert(/shellQuickToggle/.test(ui)&&/toggleQuickPanel/.test(ui),'Acciones rápidas se abren bajo demanda');assert(/Centros y proyectos/.test(ui),'La navegación usa centros/proyectos');assert(/roleVisibility/.test(ui)&&/isAdmin\(\)/.test(ui),'Visibilidad administrativa se adapta por rol');assert(!/paintShell\s*\(/.test(ui),'No quedan llamadas UX inexistentes');assert(/min-height:42px/.test(pricingShell),'Pricing comparte controles legibles');assert(!/font-size:(?:7|8|9)px/.test(pricingShell),'Pricing evita tipografía microscópica');assert(!/totus-pricing-demo/.test(all),'Fuentes activas no redirigen a la herramienta antigua');
+const backup=read('totus-backup.js'),team=read('totus-team.js');assert(/runLoadedBackupRestore\('exact'\)/.test(backup),'Rollback exacto disponible');assert(/runLoadedBackupRestore\('merge'\)/.test(backup),'Recuperación fusionada disponible');assert(/createSafetyBackup/.test(backup),'Restauración exige copia previa');assert(/verifyRestoredBackup/.test(backup),'Restauración verifica integridad');assert(/admin_validate_backup_auth/.test(backup),'Rollback exacto verifica cuentas Auth');assert(/BACKUP_FILE_BUCKETS=\['task-evidence','internal-library','user-avatars'\]/.test(team),'Backup incluye evidencias, biblioteca y avatares');assert(/qAllBackup/.test(team),'Backup usa paginación completa');
+const workspaces=read('totus-workspaces.js');assert(/digital_project/.test(workspaces)&&/client_site/.test(workspaces),'Centros soportan proyectos digitales y clientes');assert(/if\(!isAdmin\(\)\)/.test(workspaces),'Configuración de centros restringida en interfaz');
+if(fail.length){console.error('\nQA FALLIDA');for(const x of fail)console.error('✗ '+x);console.error(`\n${ok.length} comprobaciones superadas antes del fallo.`);process.exit(1)}console.log(`QA OK · ${ok.length} comprobaciones`);for(const x of ok)console.log('✓ '+x);
