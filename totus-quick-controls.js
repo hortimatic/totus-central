@@ -47,35 +47,43 @@
   function quickBarHtml(){
     const a=openAttendance(),timer=openTaskTime(),intr=!timer?openTaskInterruption():null,br=openPersonalBreak(),task=currentTask(),tasks=openOwnTasks(),loc=preferredLocation(),personal=quickPersonalTypes(),work=quickWorkTypes(),selectedTask=task?.id||preferredTask();
     const attendanceBlock=a
-      ? `<div class="qc-group qc-attendance active"><span class="qc-kicker">JORNADA</span><b>${esc(locationName(a.location_id))}</b><small>Fichado · ${fmtDur(elapsedSec(a.clock_in))}</small><button class="qc-btn danger-soft" onclick="quickClockOut()">Salir</button></div>`
+      ? `<div class="qc-group qc-attendance active"><span class="qc-kicker">JORNADA</span><b>${esc(locationName(a.location_id))}</b><small>Fichado · <span id="qcAttendanceElapsed">${fmtDur(elapsedSec(a.clock_in))}</span></small><button class="qc-btn danger-soft" onclick="quickClockOut()">Salir</button></div>`
       : `<div class="qc-group qc-attendance"><span class="qc-kicker">JORNADA</span><label class="sr-only" for="qcLocation">Tienda</label><select id="qcLocation" onchange="localStorage.setItem('${LAST_LOC_KEY}',this.value)">${locOptions(loc)}</select><button class="qc-btn primary" onclick="quickClockIn()">Entrar</button></div>`;
 
     let taskBlock='';
     if(!a){taskBlock=`<div class="qc-group qc-task disabled"><span class="qc-kicker">TAREA</span><b>Primero ficha entrada</b><small>Después podrás iniciar una tarea.</small></div>`}
     else if(br){taskBlock=`<div class="qc-group qc-task disabled"><span class="qc-kicker">TAREA</span><b>Pausada por parada personal</b><small>Finaliza la parada para continuar.</small></div>`}
     else if(intr){taskBlock=`<div class="qc-group qc-task warning"><span class="qc-kicker">TAREA</span><b>${esc(task?.title||'Tarea')}</b><small>${esc(interruptionName(intr.reason_code))} · laboral</small><button class="qc-btn primary" onclick="quickResumeTask('${task?.id||''}')">Reanudar</button></div>`}
-    else if(timer){taskBlock=`<div class="qc-group qc-task active"><span class="qc-kicker">TAREA</span><b>${esc(task?.title||'Tarea')}</b><small>${fmtDur(elapsedSec(timer.started_at))} · reloj activo</small><div class="qc-inline"><button class="qc-btn" onclick="quickPauseTask()">Pausar</button><button class="qc-btn ghost" onclick="openActiveTask()">Abrir</button></div></div>`}
+    else if(timer){taskBlock=`<div class="qc-group qc-task active"><span class="qc-kicker">TAREA</span><b>${esc(task?.title||'Tarea')}</b><small><span id="qcTaskElapsed">${fmtDur(elapsedSec(timer.started_at))}</span> · reloj activo</small><div class="qc-inline"><button class="qc-btn" onclick="quickPauseTask()">Pausar</button><button class="qc-btn ghost" onclick="openActiveTask()">Abrir</button></div></div>`}
     else if(tasks.length){taskBlock=`<div class="qc-group qc-task"><span class="qc-kicker">TAREA</span><label class="sr-only" for="qcTask">Tarea pendiente</label><select id="qcTask" onchange="localStorage.setItem('${LAST_TASK_KEY}',this.value)">${taskOptions(tasks,selectedTask)}</select><button class="qc-btn primary" onclick="quickStartTask()">Iniciar</button></div>`}
     else{taskBlock=`<div class="qc-group qc-task"><span class="qc-kicker">TAREA</span><b>Sin tareas pendientes</b><small>No hay trabajo asignado abierto.</small><button class="qc-btn ghost" onclick="goSub('tasks')">Ver tareas</button></div>`}
 
     let personalBlock='';
     if(!a){personalBlock=`<div class="qc-group qc-personal disabled"><span class="qc-kicker">PARADA PERSONAL</span><b>Disponible al fichar</b><small>No computa como trabajo.</small></div>`}
     else if(intr){personalBlock=`<div class="qc-group qc-personal disabled"><span class="qc-kicker">PARADA PERSONAL</span><b>Interrupción laboral activa</b><small>Reanuda la tarea antes de una parada personal.</small></div>`}
-    else if(br){const previous=localStorage.getItem(LAST_TASK_KEY),canResume=previous&&tasks.some(x=>x.id===previous);personalBlock=`<div class="qc-group qc-personal personal-active"><span class="qc-kicker">PARADA PERSONAL · NO COMPUTA</span><b>${esc(breakName(br.break_type))}</b><small>${fmtDur(elapsedSec(br.started_at))}</small><button class="qc-btn danger" onclick="quickStopPersonalBreak(${canResume?'true':'false'})">${canResume?'Fin + reanudar tarea':'Finalizar'}</button></div>`}
+    else if(br){const previous=localStorage.getItem(LAST_TASK_KEY),canResume=previous&&tasks.some(x=>x.id===previous);personalBlock=`<div class="qc-group qc-personal personal-active"><span class="qc-kicker">PARADA PERSONAL · NO COMPUTA</span><b>${esc(breakName(br.break_type))}</b><small><span id="qcBreakElapsed">${fmtDur(elapsedSec(br.started_at))}</span></small><button class="qc-btn danger" onclick="quickStopPersonalBreak(${canResume?'true':'false'})">${canResume?'Fin + reanudar tarea':'Finalizar'}</button></div>`}
     else{personalBlock=`<div class="qc-group qc-personal"><span class="qc-kicker">PARADA PERSONAL</span><label class="sr-only" for="qcPersonal">Motivo de parada personal</label><select id="qcPersonal">${optionRows(personal,personal[0]?.code||'')}</select><button class="qc-btn danger-soft" onclick="quickStartPersonalBreak()">Iniciar</button></div>`}
 
     let workBlock='';
     if(!timer){workBlock=`<div class="qc-group qc-work disabled"><span class="qc-kicker">INTERRUPCIÓN LABORAL</span><b>${intr?'Ya está registrada':'Necesita tarea activa'}</b><small>${intr?'Sigue computando jornada.':'Cliente, comercial, llamada, incidencia…'}</small></div>`}
     else{workBlock=`<div class="qc-group qc-work"><span class="qc-kicker">INTERRUPCIÓN LABORAL · COMPUTA</span><label class="sr-only" for="qcWork">Motivo laboral</label><select id="qcWork">${optionRows(work,work[0]?.code||'')}</select><button class="qc-btn warning" onclick="quickStartWorkInterruption()">Marcar</button></div>`}
 
-    return `<div class="quick-clock-bar" id="quickClockBar"><div class="quick-clock-head"><div><b>Acciones rápidas</b><span>Registra lo que haces sin salir de esta pantalla.</span></div><button type="button" class="qc-help" onclick="quickClockHelp()">?</button></div><div class="quick-clock-grid">${attendanceBlock}${taskBlock}${personalBlock}${workBlock}</div></div>`;
+    return `<div class="quick-clock-bar" id="quickClockBar"><div class="quick-clock-head"><div><b>Acciones rápidas</b><span>Registra lo que haces sin salir de esta pantalla.</span></div><div class="quick-clock-head-actions"><button type="button" class="qc-alarm" onclick="requestNotifications()">Alarmas</button><button type="button" class="qc-help" onclick="quickClockHelp()">?</button></div></div><div class="quick-clock-grid">${attendanceBlock}${taskBlock}${personalBlock}${workBlock}</div></div>`;
   }
 
   function renderQuickClockBar(force=false){
     const dock=document.querySelector('.status-dock');if(!dock||!me())return;
     const sig=stateSignature();if(!force&&sig===lastSignature&&document.getElementById('quickClockBar'))return;lastSignature=sig;
     document.getElementById('quickClockBar')?.remove();
-    dock.insertAdjacentHTML('beforeend',quickBarHtml());
+    dock.insertAdjacentHTML('beforeend',quickBarHtml());document.body.classList.add('quick-controls-ready');
+  }
+
+  function refreshQuickDurations(){
+    const a=openAttendance(),t=openTaskTime(),b=openPersonalBreak();
+    const ae=document.getElementById('qcAttendanceElapsed'),te=document.getElementById('qcTaskElapsed'),be=document.getElementById('qcBreakElapsed');
+    if(ae&&a)ae.textContent=fmtDur(elapsedSec(a.clock_in));
+    if(te&&t)te.textContent=fmtDur(elapsedSec(t.started_at));
+    if(be&&b)be.textContent=fmtDur(elapsedSec(b.started_at));
   }
 
   window.quickClockHelp=function(){modal(`<div class="section-head"><div><div class="eyebrow">Acciones rápidas</div><h3>Cómo usar los relojes</h3></div><button class="ghost" onclick="closeModal()">Cerrar</button></div><div class="quick-help-list"><div><b>1 · Jornada</b><span>Elige tienda y pulsa Entrar. Para salir, un solo botón.</span></div><div><b>2 · Tarea</b><span>Selecciona una tarea pendiente e iníciala. Pausar conserva el tiempo registrado.</span></div><div><b>3 · Parada personal</b><span>Cigarro, comida no incluida, recado o llamada personal. NO COMPUTA y detiene la tarea.</span></div><div><b>4 · Interrupción laboral</b><span>Cliente, comercial, compañero, proveedor o incidencia. COMPUTA jornada pero separa ese tiempo de la tarea.</span></div></div><div class="note" style="margin-top:12px">Solo se pide una explicación cuando el motivo seleccionado la necesita. El objetivo es que las acciones habituales requieran 1–2 toques.</div>`)};
@@ -139,7 +147,7 @@
   };
 
   const baseTick=window.tick;
-  if(typeof baseTick==='function')window.tick=function(){const r=baseTick.apply(this,arguments);renderQuickClockBar(false);return r};
+  if(typeof baseTick==='function')window.tick=function(){const r=baseTick.apply(this,arguments);renderQuickClockBar(false);refreshQuickDurations();return r};
   const basePaint=window.paintUser;
   if(typeof basePaint==='function')window.paintUser=function(){const r=basePaint.apply(this,arguments);requestAnimationFrame(()=>renderQuickClockBar(true));return r};
   requestAnimationFrame(()=>renderQuickClockBar(true));
