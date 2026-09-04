@@ -1,11 +1,12 @@
-/* Totus Central · UX audit controls V20.1
+/* Totus Central · UX audit controls V20.2
    Claridad de relojes, históricos y obligatoriedad. No cambia datos ni RLS. */
 (function(){
+  function setTextIfChanged(el,text){if(el&&el.textContent!==text)el.textContent=text}
   function currentWorkLabels(){
     const timer=openTaskTime(),intr=!timer?openTaskInterruption():null,br=openPersonalBreak(),task=timer?db.tasks.find(t=>t.id===timer.task_id):intr?db.tasks.find(t=>t.id===intr.task_id):null;
     const tt=document.getElementById('taskDockTitle'),ts=document.getElementById('taskDockSub'),bt=document.getElementById('breakDockTitle'),bs=document.getElementById('breakDockSub');
-    if(intr){if(tt)tt.textContent=`Interrupción laboral · ${interruptionName(intr.reason_code)}`;if(ts)ts.textContent=`COMPUTA · ${task?.title||'Tarea'} · desde ${dt(intr.started_at)}`}
-    if(br){if(bt)bt.textContent=`Parada personal · ${breakName(br.break_type)}`;if(bs)bs.textContent=`NO COMPUTA · desde ${dt(br.started_at)}`}
+    if(intr){setTextIfChanged(tt,`Interrupción laboral · ${interruptionName(intr.reason_code)}`);setTextIfChanged(ts,`COMPUTA · ${task?.title||'Tarea'} · desde ${dt(intr.started_at)}`)}
+    if(br){setTextIfChanged(bt,`Parada personal · ${breakName(br.break_type)}`);setTextIfChanged(bs,`NO COMPUTA · desde ${dt(br.started_at)}`)}
   }
   const originalTick=window.tick;
   if(typeof originalTick==='function')window.tick=function(){const r=originalTick.apply(this,arguments);currentWorkLabels();return r};
@@ -45,7 +46,12 @@
     const pill=document.querySelector('.userpill .usertext');if(!pill||pill.querySelector('.role-help-mini'))return;
     const b=document.createElement('button');b.type='button';b.className='role-help-mini';b.textContent='Permisos';b.onclick=()=>{const role=currentRole();modal(`<div class="section-head"><div><div class="eyebrow">Permisos actuales</div><h3>${esc(humanRole(role))}</h3></div><button class="ghost" onclick="closeModal()">Cerrar</button></div><div class="help-body">${esc(ROLE_TEXT[role]||'Rol de usuario.')}</div>${role!=='admin'?'<div class="warn-note note" style="margin-top:12px">La auditoría ha detectado que la jerarquía Gerente / Encargado aún no está suficientemente diferenciada en servidor. Se está revisando antes de ampliar permisos.</div>':''}`)};pill.appendChild(b)
   }
-  function enhance(){currentWorkLabels();addAllHistoryFilters();markRequired();addRoleHelp()}
-  const obs=new MutationObserver(()=>requestAnimationFrame(enhance));obs.observe(document.body,{childList:true,subtree:true});
-  requestAnimationFrame(enhance);
+  function enhanceStatic(){addAllHistoryFilters();markRequired();addRoleHelp()}
+  let queued=false;
+  const obs=new MutationObserver(mutations=>{
+    if(!mutations.some(m=>[...m.addedNodes].some(n=>n.nodeType===1)))return;
+    if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhanceStatic()})
+  });
+  obs.observe(document.body,{childList:true,subtree:true});
+  requestAnimationFrame(()=>{enhanceStatic();currentWorkLabels()});
 })();
