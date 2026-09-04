@@ -2,9 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 const root=process.cwd(),fail=[],ok=[];
 const read=p=>fs.readFileSync(path.join(root,p),'utf8'),exists=p=>fs.existsSync(path.join(root,p)),assert=(c,m)=>c?ok.push(m):fail.push(m);
-const required=['index.html','totus-suite.html','totus-team.js','totus-team.css','totus-shell.css','totus-ui.js','totus-quick-controls.js','totus-pricing-shell.js','totus-workspaces.js','totus-backup.js','pricing.html'];
+const required=['index.html','totus-suite.html','totus-team.js','totus-team.css','totus-shell.css','totus-ui.js','totus-quick-controls.js','totus-pricing-shell.js','totus-work-activity.js','totus-work-activity-present.js','totus-report-activity.js','totus-workspaces.js','totus-backup.js','totus-rbac.js','pricing.html'];
 for(const f of required)assert(exists(f),`Existe ${f}`);
-for(const f of ['totus-ui-v19.css','totus-ui-v19.js','totus-navigation-v21.js','totus-quick-controls.css'])assert(!exists(f),`Retirada capa visual heredada: ${f}`);
+const retired=['totus-ui-v19.css','totus-ui-v19.js','totus-navigation-v21.js','totus-quick-controls.css','totus-work-activity-v22.js','totus-work-activity-present-v22.js','totus-report-activity-v24.js'];
+for(const f of retired)assert(!exists(f),`Retirada capa/módulo heredado: ${f}`);
 if(fail.length){console.error(fail.join('\n'));process.exit(1)}
 const index=read('index.html'),suite=read('totus-suite.html');
 assert(index===suite,'index.html y totus-suite.html son idénticos');
@@ -16,6 +17,7 @@ assert(new Set(refs).size===refs.length,'No hay CSS/JS locales cargados por dupl
 const cssRefs=[...index.matchAll(/<link[^>]+href="([^"]+\.css)"/g)].map(m=>m[1]);
 assert(cssRefs.length===2&&cssRefs.includes('totus-team.css')&&cssRefs.includes('totus-shell.css'),'Solo se cargan CSS base + shell visual');
 const loadedJs=[...index.matchAll(/<script[^>]+src="([^"]+\.js)"/g)].map(m=>m[1]).filter(x=>!x.startsWith('http')).map(x=>x.replace(/^\.\//,''));
+const versionedActive=loadedJs.filter(x=>/-v\d+/i.test(x));assert(versionedActive.length===0,`Producción no carga módulos JS versionados: ${versionedActive.join(', ')||'OK'}`);
 const sourceFiles=[...new Set([...loadedJs,'pricing.html'])];let all='';for(const f of sourceFiles)all+='\n'+read(f);
 const defs=new Set();
 for(const m of all.matchAll(/\b(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/g))defs.add(m[1]);
