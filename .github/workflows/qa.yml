@@ -45,6 +45,8 @@ jobs:
         run: node qa/role-visual-qa.mjs
       - name: Verify employee records by role
         run: node qa/employee-records-qa.mjs
+      - name: Run 280+ reference UI renders
+        run: node qa/reference-ui-qa.mjs
       - name: Keep visual evidence
         if: always()
         uses: actions/upload-artifact@v4
