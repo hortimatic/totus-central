@@ -2,6 +2,8 @@ import fs from 'node:fs';
 const read=p=>fs.readFileSync(p,'utf8');
 const backup=read('totus-backup.js');
 const team=read('totus-team.js');
+const rbac=read('totus-rbac.js');
+const index=read('index.html');
 const fail=[];const ok=[];const check=(c,m)=>c?ok.push(m):fail.push(m);
 check(/V3_VERSION=3/.test(backup),'Backup portable usa versión 3');
 check(/team_member_locations/.test(backup),'Backup V3 incluye asignaciones usuario-centro/proyecto');
@@ -12,5 +14,12 @@ check(/createSafetyBackup/.test(backup),'Rollback/restauración crea copia previ
 check(/verifyRestoredBackup/.test(backup),'Rollback/restauración verifica integridad');
 check(/user-avatars/.test(team),'Copia de archivos incluye avatares');
 check(/task-evidence/.test(team)&&/internal-library/.test(team),'Copia de archivos incluye evidencias y biblioteca');
+check(/totus-rbac\.js/.test(index),'Shell carga capa RBAC');
+check(/canManageTeam/.test(rbac)&&/canSuperviseTeam/.test(rbac),'RBAC separa gerencia y supervisión');
+check(/canManageUsers=systemAdmin/.test(rbac)&&/canManageBackups=systemAdmin/.test(rbac),'Usuarios y backup siguen solo admin');
+check(/sub==='stores'&&!systemAdmin/.test(rbac),'Ruta de centros se protege en cliente');
+check(/sub==='maintenance'&&!systemAdmin/.test(rbac),'Ruta de mantenimiento se protege en cliente');
+check(/\['admin','gerente','encargado'\]/.test(rbac),'Encargado está en supervisión operativa');
+check(/\['admin','gerente'\]/.test(rbac),'Gerente está en gestión operativa');
 if(fail.length){console.error('BACKUP/RBAC QA FALLIDA');fail.forEach(x=>console.error('✗ '+x));process.exit(1)}
 console.log(`BACKUP/RBAC QA OK · ${ok.length}`);ok.forEach(x=>console.log('✓ '+x));
