@@ -25,3 +25,24 @@ jobs:
           done
       - name: Totus structural QA
         run: node qa/static-qa.mjs
+
+  visual-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser QA
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Render every main screen
+        run: node qa/visual-qa.mjs
+      - name: Keep visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: totus-visual-qa
+          path: qa-artifacts/
+          retention-days: 7
