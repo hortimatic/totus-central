@@ -25,7 +25,8 @@ let all='';for(const f of sourceFiles)all+='\n'+read(f);
 const defs=new Set();
 for(const m of all.matchAll(/\b(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/g))defs.add(m[1]);
 for(const m of all.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?function\b/g))defs.add(m[1]);
-for(const m of all.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>/g))defs.add(m[1]);
+for(const m of all.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>/g))defs.add(m[1]);
+for(const m of all.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)/g))defs.add(m[1]);
 
 const eventSources=[index,...loadedJs.map(read),read('pricing.html')].join('\n');
 const handlers=new Set();
