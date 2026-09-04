@@ -38,7 +38,7 @@ label{margin-bottom:6px!important;color:#475569!important;font-size:11px!importa
       doc.head.appendChild(st);doc.body?.classList.add('totus-pricing-shell');bridgePricingNavigation();
     }catch{}
   }
-  const baseTune=window.tuneFrame;if(typeof baseTune==='function')window.tuneFrame=function(){const r=baseTune.apply(this,arguments);applyPricingShell();return r};
+  window.tuneFrame=function(){applyPricingShell();bridgePricingNavigation()};
   const baseNavigate=window.navigateFrame;if(typeof baseNavigate==='function')window.navigateFrame=function(section){syncPricingSession().finally(()=>{bridgePricingNavigation();applyPricingShell();baseNavigate.call(this,section)})};
   const frame=document.getElementById('pricingFrame');if(frame)frame.addEventListener('load',()=>{syncPricingSession().finally(()=>{applyPricingShell();bridgePricingNavigation()})});
   window.applyPricingShell=applyPricingShell;window.syncPricingSession=syncPricingSession;
