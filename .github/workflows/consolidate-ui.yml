@@ -1,0 +1,34 @@
+name: Consolidate Totus UI
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  consolidate:
+    if: github.event.head_commit.message == 'Run UI consolidation'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge verified refinements into the single shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '\n\n' >> totus-shell.css
+          cat totus-reference-finetune.css >> totus-shell.css
+          sed -i '/totus-reference-finetune.css/d' index.html
+          sed -i '/totus-reference-finetune.css/d' totus-suite.html
+          rm totus-reference-finetune.css
+          rm .github/workflows/consolidate-ui.yml
+          cmp -s index.html totus-suite.html
+      - name: Commit consolidated UI
+        shell: bash
+        run: |
+          git config user.name 'hortimatic'
+          git config user.email 'hortimatic@gmail.com'
+          git add -A
+          git commit -m 'Consolidate browser-verified UI into single shell'
+          git push origin HEAD:main
