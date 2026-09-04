@@ -54,3 +54,15 @@ details:not([open])>.audit-card{display:none!important}
   .head h1{font-size:21px!important}
   .head p{font-size:12px!important}
 }
+
+/* Browser QA · cierre de incidencias restantes */
+#main .schedule-time-field>span{font-size:10px!important;line-height:1.35!important}
+@media(max-width:760px){
+  #main .card:has(> .section-head + .list .task-card),
+  #main .card:has(> .purchase-form){display:contents!important}
+  #main .card:has(> .section-head + .list .task-card)>.section-head{margin:12px 0 8px;padding:0 2px}
+  #main .card:has(> .purchase-form)>.section-head{margin:12px 0 6px;padding:0 2px}
+  #main .purchase-form{display:grid;gap:10px}
+  #main .purchase-form .form-section{margin-top:0!important}
+  #main .task-card{margin-bottom:8px}
+}
