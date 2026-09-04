@@ -25,6 +25,8 @@ jobs:
           done
       - name: Totus structural QA
         run: node qa/static-qa.mjs
+      - name: Backup V3 and RBAC QA
+        run: node qa/backup-rbac-qa.mjs
 
   visual-qa:
     runs-on: ubuntu-latest
