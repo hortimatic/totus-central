@@ -1,20 +1,29 @@
 # Totus Central · Producción
 
-Paquete de despliegue de Totus Central.
+Repositorio activo de Totus Central. La aplicación se publica desde `main` mediante GitHub Pages y usa el proyecto Supabase de Totus Central.
 
-## Uso
-- Publicar **todos los archivos de esta carpeta juntos** sin cambiar sus nombres.
-- El punto de entrada es `index.html`.
-- `index.html` y `totus-suite.html` son equivalentes y deben mantenerse sincronizados.
-- La aplicación usa el proyecto Supabase ya configurado para Totus Central.
-- No requiere que el usuario ejecute pruebas, scripts ni migraciones para el uso normal.
-
-## Archivos de aplicación
+## Punto de entrada
 - `index.html`
-- `totus-suite.html`
-- `totus-team.js`
-- `totus-team.css`
-- `pricing.html`
-- `fondo_original.png`
+- `totus-suite.html` se mantiene idéntico como entrada equivalente.
 
-`SHA256SUMS.txt` permite comprobar que el paquete no se ha alterado.
+## Núcleo activo
+- `totus-team.js` · motor operativo existente.
+- `totus-team.css` · estilos base.
+- `totus-shell.css` · shell visual único de la nueva construcción.
+- `pricing.html` + `totus-pricing-shell.js` · Pricing integrado sin modificar el repositorio original de Totus Pricing.
+- `totus-quick-controls.js` · controles rápidos de jornada, tarea, actividad laboral y parada personal.
+- `totus-work-activity.js` · actividad laboral computable con o sin tarea.
+- `totus-work-activity-present.js` · presentación de estado y actividad del equipo.
+- `totus-report-activity.js` · informes exhaustivos de actividad.
+- `totus-workspaces.js` · centros/proyectos y asignaciones del equipo.
+- `totus-backup.js` · Backup V4 y restauración/rollback compatible con V1/V2/V3.
+- `totus-rbac.js` · capacidades y permisos por rol.
+- `totus-employee-records.js` · incidencias y documentación privada de empleado.
+- `totus-ui.js` · integración de navegación, ayudas y shell.
+- `fondo_original.png` · recurso visual.
+
+## Criterio de mantenimiento
+No se mantienen copias runtime versionadas ni capas antiguas conectadas “por si acaso”. Git conserva el histórico. Producción debe contener una única ruta activa por responsabilidad y toda función nueva debe entrar con RLS, auditoría, backup y QA.
+
+## QA
+El workflow `.github/workflows/qa.yml` comprueba sintaxis, estructura, módulos activos, backup/RBAC, renderizado Chromium, cinco roles y expediente de empleado. El usuario final no tiene que ejecutar pruebas ni scripts.
