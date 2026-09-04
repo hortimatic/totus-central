@@ -25,7 +25,7 @@ jobs:
           done
       - name: Totus structural QA
         run: node qa/static-qa.mjs
-      - name: Backup V3 and RBAC QA
+      - name: Backup V4 and RBAC QA
         run: node qa/backup-rbac-qa.mjs
 
   visual-qa:
@@ -43,6 +43,8 @@ jobs:
         run: node qa/visual-qa.mjs
       - name: Simulate every role
         run: node qa/role-visual-qa.mjs
+      - name: Verify employee records by role
+        run: node qa/employee-records-qa.mjs
       - name: Keep visual evidence
         if: always()
         uses: actions/upload-artifact@v4
