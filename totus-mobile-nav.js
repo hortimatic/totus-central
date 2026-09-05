@@ -37,14 +37,23 @@
     const field=candidates.find(x=>/^Empleado\b/i.test((x.querySelector('label')?.textContent||'').trim()));
     if(field)field.classList.add('hidden');
   }
+  function globalContextControl(){return document.querySelector('.shell-top-actions .employee-context-select-wrap')}
   function pruneDuplicateContextControls(){
     if(!isAdminUser())return;
+    const contextControl=globalContextControl();
+    if(contextControl)contextControl.classList.toggle('hidden',!['tasks','purchases'].includes(state.root));
     if(state.root==='tasks'&&state.sub==='attendance')document.querySelector('.section-attendance>.ref-inline-select')?.classList.add('hidden');
     if(state.root==='tasks'&&state.sub==='incidents')hideEmployeeField(document.querySelector('.ref-incidents>.card:first-of-type .form-grid'));
     if(state.root==='tasks'&&state.sub==='documents')hideEmployeeField(document.querySelector('.ref-documents>.card:first-of-type .form-grid'));
     if(state.root==='purchases'&&['purchase-history','purchase-audit'].includes(state.sub)){
       const head=document.querySelector('#main>.head');
       if(head){const field=[...head.children].find(x=>/^Empleado\b/i.test((x.querySelector?.('label')?.textContent||'').trim()));if(field)field.classList.add('hidden')}
+    }
+    if(state.root==='purchases'&&state.sub==='purchase-reports'){
+      const select=document.getElementById('buyRepUser');
+      if(select&&[...select.options].some(o=>o.value===currentEmployee()))select.value=currentEmployee();
+      const box=select?.closest('.report-core-filters')||select?.parentElement?.parentElement;
+      hideEmployeeField(box);
     }
   }
   window.pruneDuplicateEmployeeControls=pruneDuplicateContextControls;
