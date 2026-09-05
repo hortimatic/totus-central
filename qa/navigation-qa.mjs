@@ -46,9 +46,9 @@ try{
  }
 
  await route('purchases','purchase-overview','Compras','Compras');
- await route('purchases','purchase-history','Historial íntegro','Compras');
- await route('purchases','purchase-reports','Informes de compras','Compras');
- await route('purchases','purchase-audit','Auditoría inmutable','Compras');
+ await route('purchases','purchase-history','Movimientos','Compras');
+ await route('purchases','purchase-reports','Más filtros','Compras');
+ await route('purchases','purchase-audit','Movimientos auditados','Compras');
  await route('library','library-home','Tutoriales y consultas','Ayuda y tutoriales');
  await route('library','questions','Preguntas y respuestas guardadas','Ayuda y tutoriales');
  await route('logs','general-log','Histórico de movimientos','Histórico');
@@ -60,19 +60,21 @@ try{
  await route('tasks','documents','Documentación','Documentación');
 
  await page.evaluate(()=>goRoot('users','users-home'));await page.waitForTimeout(120);
- const usersRoute=await page.evaluate(()=>({root:state.root,sub:state.sub,title:document.getElementById('shellTitle')?.textContent||'',text:document.getElementById('main')?.innerText||'',mainHidden:document.getElementById('main')?.classList.contains('hidden')}));
+ const usersRoute=await page.evaluate(()=>({root:state.root,sub:state.sub,title:document.getElementById('shellTitle')?.textContent||'',text:document.getElementById('main')?.innerText||'',mainHidden:document.getElementById('main')?.classList.contains('hidden'),contextVisible:!!document.querySelector('.shell-top-actions .employee-context-select-wrap:not(.hidden)')}));
  assert(usersRoute.root==='users'&&usersRoute.sub==='users-home','Usuarios: ruta incorrecta');
  assert(usersRoute.title==='Usuarios','Usuarios: título superior incorrecto');
  assert(!usersRoute.mainHidden,'Usuarios: vista nativa queda oculta');
  assert(usersRoute.text.includes('Usuarios'),'Usuarios: ficha nativa no renderiza');
+ assert(!usersRoute.contextVisible,'Usuarios: selector global de empleado no debe ocupar la cabecera');
  await page.screenshot({path:'qa-artifacts/live_users_users-home.png',fullPage:true});
 
  await page.evaluate(()=>goRoot('pricing','home'));await page.waitForTimeout(180);
- const pricing=await page.evaluate(()=>({root:state.root,sub:state.sub,title:document.getElementById('shellTitle')?.textContent||'',frameHidden:document.getElementById('iframeShell')?.classList.contains('hidden'),src:document.getElementById('pricingFrame')?.getAttribute('src')||''}));
+ const pricing=await page.evaluate(()=>({root:state.root,sub:state.sub,title:document.getElementById('shellTitle')?.textContent||'',frameHidden:document.getElementById('iframeShell')?.classList.contains('hidden'),src:document.getElementById('pricingFrame')?.getAttribute('src')||'',contextVisible:!!document.querySelector('.shell-top-actions .employee-context-select-wrap:not(.hidden)')}));
  assert(pricing.root==='pricing'&&pricing.sub==='home','Pricing: ruta incorrecta');
  assert(pricing.title==='Precios','Pricing: título superior incorrecto');
  assert(!pricing.frameHidden,'Pricing: iframe no visible');
  assert(pricing.src!=='about:blank','Pricing: iframe no iniciado');
+ assert(!pricing.contextVisible,'Pricing: selector global de empleado no debe ocupar la cabecera');
 
  await page.evaluate(()=>goRoot('purchases'));
  await page.waitForTimeout(60);
@@ -82,7 +84,9 @@ try{
 
  await page.evaluate(()=>goRoot('library'));
  await page.waitForTimeout(60);
- assert(await page.evaluate(()=>state.sub)==='library-home','Biblioteca: entrada por defecto no abre Tutoriales y documentos');
+ const libraryDefault=await page.evaluate(()=>({sub:state.sub,contextVisible:!!document.querySelector('.shell-top-actions .employee-context-select-wrap:not(.hidden)')}));
+ assert(libraryDefault.sub==='library-home','Biblioteca: entrada por defecto no abre Tutoriales y documentos');
+ assert(!libraryDefault.contextVisible,'Biblioteca: selector global de empleado innecesario');
 
  await page.evaluate(()=>{goRoot('purchases','purchase-overview');goSub('history')});
  await page.waitForTimeout(60);
@@ -100,6 +104,9 @@ try{
  await page.locator('.subnav-mobile').selectOption('questions');await page.waitForTimeout(70);
  assert(await page.evaluate(()=>state.sub)==='questions','Selector móvil: Consultas internas no navega');
  await page.screenshot({path:'qa-artifacts/live_mobile_library_questions.png',fullPage:true});
+ await page.evaluate(()=>goRoot('purchases','purchase-history'));await page.waitForTimeout(70);
+ assert(await page.locator('.purchase-mobile-list').isVisible(),'Compras móvil: historial no usa tarjetas responsive');
+ await page.screenshot({path:'qa-artifacts/live_mobile_purchases_history.png',fullPage:true});
  await page.setViewportSize({width:1440,height:1000});
 
  for(const [root,sub,selector] of [
@@ -117,6 +124,11 @@ try{
    },selector);
    assert(duplicate===0,`${root}/${sub}: selector local de empleado duplicado`);
  }
+
+ await page.evaluate(()=>goRoot('purchases','purchase-reports'));await page.waitForTimeout(80);
+ const reportScope=await page.evaluate(()=>({user:document.getElementById('buyRepUser')?.value||'',visible:!!document.querySelector('#buyRepUser:not(.sr-only)')}));
+ assert(reportScope.user==='u1','Informes compras: no hereda empleado global');
+ assert(!reportScope.visible,'Informes compras: selector de empleado duplicado visible');
 
  await page.evaluate(()=>goRoot('purchases','purchase-overview'));
  await page.waitForTimeout(60);
