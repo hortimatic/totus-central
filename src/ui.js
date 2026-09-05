@@ -1,7 +1,7 @@
 import {CONFIG,ROLES} from './config.js';
 import {state} from './state.js';
 
-export const esc = (v='') => String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));
+export const esc = (v='') => String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 export const money = v => new Intl.NumberFormat('es-ES',{style:'currency',currency:CONFIG.currency}).format(Number(v)||0);
 export const dateText = v => v ? new Date(v).toLocaleDateString('es-ES') : '—';
 export const dateTimeText = v => v ? new Date(v).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'}) : '—';
