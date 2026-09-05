@@ -1,6 +1,7 @@
 /* Totus Central · navegación coherente
-   Mantiene una sola navegación en escritorio/móvil y traduce las secciones visuales
-   a los identificadores reales de cada módulo. No modifica reglas ni permisos. */
+   Mantiene una sola navegación en escritorio/móvil, traduce las secciones visuales
+   a los identificadores reales y evita selectores de empleado duplicados para admin.
+   No modifica reglas ni permisos. */
 (function(){
   if(typeof window.renderLibraryModule!=='function'&&typeof window.renderLibrary==='function')window.renderLibraryModule=window.renderLibrary;
 
@@ -22,11 +23,29 @@
     const uid=currentEmployee();if(!uid)return false;
     let changed=false;
     for(const key of ['historyUserId','timeUserId','reportUserId','purchaseUserId','scheduleUserId','incidentUserId','documentUserId']){
-      if(state[key]===null||state[key]===undefined){state[key]=uid;changed=true}
+      if(state[key]===null||state[key]===undefined||state[key]===''){state[key]=uid;changed=true}
     }
     return changed;
   }
   window.syncEmployeeContextDefaults=syncContextDefaults;
+
+  function hideEmployeeField(container){
+    if(!container)return;
+    const candidates=[...container.querySelectorAll(':scope > div')];
+    const field=candidates.find(x=>/^Empleado\b/i.test((x.querySelector('label')?.textContent||'').trim()));
+    if(field)field.classList.add('hidden');
+  }
+  function pruneDuplicateContextControls(){
+    if(!isAdminUser())return;
+    if(state.root==='tasks'&&state.sub==='attendance')document.querySelector('.section-attendance>.ref-inline-select')?.classList.add('hidden');
+    if(state.root==='tasks'&&state.sub==='incidents')hideEmployeeField(document.querySelector('.ref-incidents>.card:first-of-type .form-grid'));
+    if(state.root==='tasks'&&state.sub==='documents')hideEmployeeField(document.querySelector('.ref-documents>.card:first-of-type .form-grid'));
+    if(state.root==='purchases'&&['purchase-history','purchase-audit'].includes(state.sub)){
+      const head=document.querySelector('#main>.head');
+      if(head){const field=[...head.children].find(x=>/^Empleado\b/i.test((x.querySelector?.('label')?.textContent||'').trim()));if(field)field.classList.add('hidden')}
+    }
+  }
+  window.pruneDuplicateEmployeeControls=pruneDuplicateContextControls;
 
   function mobileSelect(rows,host){
     if(!host||!rows?.length)return;
@@ -43,6 +62,7 @@
     if(wrap)wrap.classList.toggle('subnav-empty',!rows?.length);
     document.body.dataset.totusRoot=state.root||'';
     document.body.dataset.totusSub=state.sub||'';
+    requestAnimationFrame(pruneDuplicateContextControls);
     return out;
   };
 
@@ -56,15 +76,15 @@
     syncContextDefaults();
     if(root==='purchases'&&!sub)sub='purchase-overview';
     if(root==='library'&&!sub)sub='library-home';
-    return baseGoRoot.call(this,root,sub);
+    const out=baseGoRoot.call(this,root,sub);requestAnimationFrame(pruneDuplicateContextControls);return out;
   };
 
   window.goSub=function(sub){
     syncContextDefaults();
     if(state.root==='purchases')sub=LEGACY_PURCHASE[sub]||sub;
     if(state.root==='library')sub=LEGACY_LIBRARY[sub]||sub;
-    return baseGoSub.call(this,sub);
+    const out=baseGoSub.call(this,sub);requestAnimationFrame(pruneDuplicateContextControls);return out;
   };
 
-  requestAnimationFrame(syncContextDefaults);
+  requestAnimationFrame(()=>{syncContextDefaults();pruneDuplicateContextControls()});
 })();
