@@ -39,6 +39,8 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
+      - name: Verify real navigation routes
+        run: node qa/navigation-qa.mjs
       - name: Render every main screen
         run: node qa/visual-qa.mjs
       - name: Simulate every role
