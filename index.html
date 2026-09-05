@@ -1,40 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Totus Central · Trabajo, precios, compras y equipo</title>
-<link rel="stylesheet" href="totus-team.css">
-<link rel="stylesheet" href="totus-shell.css">
-<link rel="stylesheet" href="totus-components.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07131f">
+  <title>Totus Central</title>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-<img alt="" class="bg-art" src="fondo_original.png"><div class="bg-shade"></div>
-<div class="login" id="loginView"><div class="login-card"><div class="logo">TOTUS <span>CENTRAL</span></div><p class="muted">Trabajo, precios, compras, equipo, documentación y trazabilidad en una única entrada.</p><div class="demo"><b>Un único acceso.</b><br>Entra una sola vez y trabaja con todos los módulos autorizados.</div><form class="login-form" id="loginForm" novalidate><label for="loginUser">Email</label><input id="loginUser" type="email" autocomplete="email" placeholder="tu@email.com" inputmode="email" required><label for="loginPass">Contraseña</label><div class="password-field"><input id="loginPass" type="password" autocomplete="current-password" placeholder="Tu contraseña" required><button id="loginPassToggle" class="password-toggle" type="button" aria-pressed="false" onclick="toggleLoginPassword()">Mostrar</button></div><div id="loginMsg" class="login-status hidden" role="status" aria-live="polite"></div><div class="actions login-actions"><button id="loginBtn" class="primary" type="submit">Entrar</button></div></form><button class="ghost login-reset" type="button" onclick="resetPassword()">He olvidado mi contraseña</button><div class="login-help">Si hay un problema temporal de conexión, Totus reintentará la carga automáticamente. Si persiste, avisa al administrador.</div></div></div>
-<div id="appView" class="hidden">
-<header class="top" aria-label="Navegación principal"><div class="logo">TOTUS <span>CENTRAL</span></div><nav class="nav"><button data-root="pricing" onclick="goRoot('pricing')">Precios</button><button data-root="tasks" onclick="goRoot('tasks')">Trabajo</button><button data-root="purchases" onclick="goRoot('purchases')">Compras</button><button data-root="users" onclick="goRoot('users')">Usuarios</button><button data-root="library" onclick="goRoot('library')">Ayuda y tutoriales</button><button data-root="logs" onclick="goRoot('logs')">Histórico</button></nav><div class="side-subnav-wrap"><div class="side-subnav-title">Dentro de esta zona</div><div class="side-subnav" id="sideSubnav"></div></div><div class="spacer"></div><div class="userpill"><div class="avatar" id="topAvatar">?</div><div class="usertext"><b id="topName">Usuario</b><span id="topRole"></span></div><button class="ghost" onclick="logout()">Salir</button></div></header>
-<div class="shell-menu-backdrop" onclick="closeShellNav()"></div>
-<header class="shell-topbar"><button type="button" class="shell-menu-toggle" onclick="toggleShellNav()" aria-label="Abrir menú">☰ <span>Menú</span></button><div class="shell-topbar-copy"><h1 id="shellTitle">Totus Central</h1><p id="shellSubtitle">Gestión interna</p></div><div class="shell-top-actions"><span class="shell-chip" id="shellWorkspaceChip">Sin centro activo</span><span class="shell-chip shell-role-chip" id="shellRoleChip">Usuario</span></div></header>
-<section class="status-dock" aria-label="Estado de jornada y trabajo"><div class="dock-inner"><div class="dock-item" id="attendanceDock"><div class="dock-icon">◷</div><div class="dock-main"><b id="attendanceDockTitle">Sin fichaje abierto</b><span id="attendanceDockSub">Inicia jornada cuando comiences.</span></div><div class="dock-time" id="attendanceClock">00:00:00</div></div><div class="dock-item" id="taskDock"><div class="dock-icon">⏱</div><div class="dock-main"><b id="taskDockTitle">Sin trabajo en marcha</b><span id="taskDockSub">Tarea o actividad laboral.</span></div><div class="dock-time" id="taskClock">00:00:00</div></div><div class="dock-item compact" id="breakDock"><div class="dock-icon">☕</div><div class="dock-main"><b id="breakDockTitle">Sin parada personal</b><span id="breakDockSub">Tiempo personal no computable.</span></div><div class="dock-time" id="breakClock">00:00:00</div></div><div class="dock-actions"><button class="secondary" id="attendanceMainBtn" onclick="toggleAttendance()">Entrar</button><button class="secondary" id="breakMainBtn" onclick="togglePersonalBreak()" disabled>Parada</button><button class="secondary" id="taskMainBtn" onclick="openActiveTask()" disabled>Ver tarea</button><button class="ghost" id="alarmTopBtn" onclick="requestNotifications()">Alarmas</button></div></div></section>
-<section class="subnav-wrap" id="subnavWrap"><div class="subnav" id="subnav"></div></section>
-<main class="main" id="main"></main>
-<div class="iframe-shell hidden" id="iframeShell"><div class="pricing-loading" id="pricingLoading">Cargando Totus Pricing…</div><iframe class="pricing-frame" id="pricingFrame" src="about:blank" title="Totus Pricing"></iframe></div>
-<div class="toast-wrap" id="toastWrap"></div><div id="modalHost"></div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="totus-team.js"></script>
-<script src="totus-pricing-shell.js"></script>
-<script src="totus-quick-controls.js"></script>
-<script src="totus-workbar.js"></script>
-<script src="totus-work-activity.js"></script>
-<script src="totus-work-activity-present.js"></script>
-<script src="totus-report-activity.js"></script>
-<script src="totus-workspaces.js"></script>
-<script src="totus-backup.js"></script>
-<script src="totus-ui.js"></script>
-<script src="totus-rbac.js"></script>
-<script src="totus-employee-records.js"></script>
-<script src="totus-employee-context.js"></script>
-<script src="totus-users.js"></script>
+  <div id="login" class="login-screen">
+    <main class="login-card" aria-labelledby="loginTitle">
+      <div class="brand">TOTUS <span>CENTRAL</span></div>
+      <h1 id="loginTitle">Acceso al equipo</h1>
+      <p class="muted">Una única herramienta para jornada, tareas, compras, precios y gestión interna.</p>
+      <form id="loginForm" novalidate>
+        <label>Email<input id="loginEmail" type="email" autocomplete="email" inputmode="email" required></label>
+        <label>Contraseña<div class="password-row"><input id="loginPassword" type="password" autocomplete="current-password" required><button id="togglePassword" type="button" class="icon-btn" aria-label="Mostrar contraseña">Ver</button></div></label>
+        <div id="loginStatus" class="form-status" role="status" aria-live="polite"></div>
+        <button id="loginSubmit" type="submit" class="primary wide">Entrar</button>
+      </form>
+      <button id="forgotPassword" type="button" class="link-btn">He olvidado mi contraseña</button>
+    </main>
+  </div>
+
+  <div id="app" class="app-shell hidden">
+    <aside id="sidebar" class="sidebar" aria-label="Menú principal">
+      <div class="brand sidebar-brand">TOTUS <span>CENTRAL</span></div>
+      <nav id="mainNav" class="main-nav"></nav>
+      <div class="sidebar-foot">
+        <div id="userMini" class="user-mini"></div>
+        <button id="logoutBtn" class="secondary wide" type="button">Salir</button>
+      </div>
+    </aside>
+    <div id="navBackdrop" class="nav-backdrop"></div>
+    <section class="workspace">
+      <header class="topbar">
+        <button id="menuBtn" class="icon-btn menu-btn" type="button" aria-label="Abrir menú">☰</button>
+        <div><div id="viewEyebrow" class="eyebrow">Totus Central</div><h1 id="viewTitle">Mi panel</h1></div>
+        <div class="topbar-actions"><span id="roleChip" class="chip"></span><span id="locationChip" class="chip"></span></div>
+      </header>
+      <section id="workDock" class="work-dock" aria-label="Estado de jornada"></section>
+      <nav id="subNav" class="subnav" aria-label="Secciones"></nav>
+      <main id="content" class="content" tabindex="-1"></main>
+    </section>
+  </div>
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+  <div id="modalHost"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./src/app.js"></script>
 </body>
 </html>
