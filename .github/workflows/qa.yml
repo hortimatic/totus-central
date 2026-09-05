@@ -1,15 +1,12 @@
-name: Totus QA
-
+name: Totus Clean QA
 on:
   push:
-    branches: [main]
+    branches: [clean-rebuild]
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
-  static-qa:
+  qa:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,37 +17,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in *.js qa/*.mjs; do
-            [ -f "$file" ] && node --check "$file"
-          done
-      - name: Totus structural QA
-        run: node qa/static-qa.mjs
-      - name: Backup V4 and RBAC QA
-        run: node qa/backup-rbac-qa.mjs
-
-  visual-qa:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+          find src qa -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
+      - name: Structural QA
+        run: node qa/clean-qa.mjs
       - name: Install browser QA
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Render every main screen
-        run: node qa/visual-qa.mjs
-      - name: Simulate every role
-        run: node qa/role-visual-qa.mjs
-      - name: Verify employee records by role
-        run: node qa/employee-records-qa.mjs
-      - name: Run 280+ reference UI renders
-        run: node qa/reference-ui-qa.mjs
-      - name: Keep visual evidence
+      - name: Visual QA desktop tablet mobile
+        run: node qa/visual-clean-qa.mjs
+      - name: Keep screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: totus-visual-qa
+          name: totus-clean-qa
           path: qa-artifacts/
           retention-days: 7
