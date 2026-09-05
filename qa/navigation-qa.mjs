@@ -59,6 +59,21 @@ try{
  await route('tasks','incidents','Incidencias','Incidencias');
  await route('tasks','documents','Documentación','Documentación');
 
+ await page.evaluate(()=>goRoot('users','users-home'));await page.waitForTimeout(120);
+ const usersRoute=await page.evaluate(()=>({root:state.root,sub:state.sub,title:document.getElementById('shellTitle')?.textContent||'',text:document.getElementById('main')?.innerText||'',mainHidden:document.getElementById('main')?.classList.contains('hidden')}));
+ assert(usersRoute.root==='users'&&usersRoute.sub==='users-home','Usuarios: ruta incorrecta');
+ assert(usersRoute.title==='Usuarios','Usuarios: título superior incorrecto');
+ assert(!usersRoute.mainHidden,'Usuarios: vista nativa queda oculta');
+ assert(usersRoute.text.includes('Usuarios'),'Usuarios: ficha nativa no renderiza');
+ await page.screenshot({path:'qa-artifacts/live_users_users-home.png',fullPage:true});
+
+ await page.evaluate(()=>goRoot('pricing','home'));await page.waitForTimeout(180);
+ const pricing=await page.evaluate(()=>({root:state.root,sub:state.sub,title:document.getElementById('shellTitle')?.textContent||'',frameHidden:document.getElementById('iframeShell')?.classList.contains('hidden'),src:document.getElementById('pricingFrame')?.getAttribute('src')||''}));
+ assert(pricing.root==='pricing'&&pricing.sub==='home','Pricing: ruta incorrecta');
+ assert(pricing.title==='Precios','Pricing: título superior incorrecto');
+ assert(!pricing.frameHidden,'Pricing: iframe no visible');
+ assert(pricing.src!=='about:blank','Pricing: iframe no iniciado');
+
  await page.evaluate(()=>goRoot('purchases'));
  await page.waitForTimeout(60);
  const purchaseDefault=await page.evaluate(()=>({sub:state.sub,user:state.purchaseUserId}));
@@ -75,6 +90,17 @@ try{
  await page.evaluate(()=>{goRoot('library','library-home');goSub('queries')});
  await page.waitForTimeout(60);
  assert(await page.evaluate(()=>state.sub)==='questions','Compatibilidad: queries no se traduce a questions');
+
+ await page.evaluate(()=>goRoot('purchases','purchase-overview'));await page.waitForTimeout(60);
+ await page.getByRole('button',{name:'Historial',exact:true}).click();await page.waitForTimeout(70);
+ assert(await page.evaluate(()=>state.sub)==='purchase-history','Click lateral: Historial de compras no navega');
+
+ await page.setViewportSize({width:430,height:900});
+ await page.evaluate(()=>goRoot('library','library-home'));await page.waitForTimeout(70);
+ await page.locator('.subnav-mobile').selectOption('questions');await page.waitForTimeout(70);
+ assert(await page.evaluate(()=>state.sub)==='questions','Selector móvil: Consultas internas no navega');
+ await page.screenshot({path:'qa-artifacts/live_mobile_library_questions.png',fullPage:true});
+ await page.setViewportSize({width:1440,height:1000});
 
  for(const [root,sub,selector] of [
    ['tasks','attendance','.section-attendance>.ref-inline-select'],
@@ -95,7 +121,17 @@ try{
  await page.evaluate(()=>goRoot('purchases','purchase-overview'));
  await page.waitForTimeout(60);
  const purchaseScope=await page.locator('#main').innerText();
- assert(!purchaseScope.includes('Todos')||purchaseScope.includes('Compra QA'),'Compras: el ámbito del empleado no queda claro');
+ assert(purchaseScope.includes('Compra QA'),'Compras: el ámbito del empleado no muestra sus datos');
+
+ await page.evaluate(()=>{db.people[0].role='tendero';paintUser();goRoot('purchases','purchase-overview')});await page.waitForTimeout(80);
+ const workerPurchaseTabs=await page.$$eval('#sideSubnav button',xs=>xs.map(x=>x.textContent.trim()));
+ assert(!workerPurchaseTabs.includes('Auditoría'),'Tendero: Auditoría de compras visible');
+ await page.evaluate(()=>goSub('purchase-audit'));await page.waitForTimeout(60);
+ assert(await page.evaluate(()=>state.sub)==='purchase-history','Tendero: puede forzar ruta de Auditoría de compras');
+ await page.evaluate(()=>goRoot('users','users-home'));await page.waitForTimeout(60);
+ const workerUsers=await page.evaluate(()=>({root:state.root,sub:state.sub,usersHidden:document.querySelector('.nav [data-root="users"]')?.classList.contains('hidden')}));
+ assert(workerUsers.root==='tasks'&&workerUsers.sub==='mine','Tendero: puede entrar en Usuarios');
+ assert(workerUsers.usersHidden,'Tendero: botón Usuarios visible');
 } finally {
  await browser.close();server.kill('SIGTERM');
 }
