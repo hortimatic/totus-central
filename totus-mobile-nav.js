@@ -2,6 +2,8 @@
    Mantiene una sola navegación en escritorio/móvil y traduce las secciones visuales
    a los identificadores reales de cada módulo. No modifica reglas ni permisos. */
 (function(){
+  if(typeof window.renderLibraryModule!=='function'&&typeof window.renderLibrary==='function')window.renderLibraryModule=window.renderLibrary;
+
   const baseSet=window.renderSubnavSet;
   const baseRender=window.renderSubnav;
   const baseGoRoot=window.goRoot;
