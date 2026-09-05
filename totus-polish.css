@@ -1,0 +1,31 @@
+/* Totus Central · pulido final de lectura
+   Correcciones puramente visuales detectadas en revisión real de móvil/escritorio. */
+.ref-mobile-schedule>div{display:grid;gap:4px;min-width:0}.ref-mobile-schedule>div>span,.ref-mobile-schedule>div>b{display:block}.ref-mobile-schedule>div>span{color:#64748b;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.06em}.ref-mobile-schedule>div>b{margin:0;color:#111827;font-size:13px;line-height:1.3;overflow-wrap:anywhere}.ref-mobile-schedule{display:grid;gap:10px}.ref-mobile-schedule>.primary{justify-self:start}
+
+@media(max-width:760px){
+  /* Fichajes: en móvil el histórico se lee como fichas; no obliga a desplazar una tabla ancha. */
+  .section-attendance .ref-history-card .table-wrap{overflow:visible;border:0;background:transparent}
+  .section-attendance .ref-history-card table{display:block;min-width:0!important;background:transparent}
+  .section-attendance .ref-history-card thead{display:none}
+  .section-attendance .ref-history-card tbody{display:grid;gap:8px}
+  .section-attendance .ref-history-card tr{display:grid;padding:8px 10px;border:1px solid #dfe5ed;border-radius:12px;background:#fff}
+  .section-attendance .ref-history-card td{min-width:0;height:auto!important;display:grid;grid-template-columns:105px minmax(0,1fr);gap:8px;align-items:start;padding:6px 0!important;border:0!important;border-bottom:1px solid #edf1f5!important;font-size:11px!important;overflow-wrap:anywhere}
+  .section-attendance .ref-history-card td:last-child{border-bottom:0!important}
+  .section-attendance .ref-history-card td::before{color:#64748b;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+  .section-attendance .ref-history-card td:nth-child(1)::before{content:'Día'}
+  .section-attendance .ref-history-card td:nth-child(2)::before{content:'Centro'}
+  .section-attendance .ref-history-card td:nth-child(3)::before{content:'Entrada real'}
+  .section-attendance .ref-history-card td:nth-child(4)::before{content:'Salida real'}
+  .section-attendance .ref-history-card td:nth-child(5)::before{content:'Presencia'}
+  .section-attendance .ref-history-card td:nth-child(6)::before{content:'Pausas'}
+  .section-attendance .ref-history-card td:nth-child(7)::before{content:'Computado'}
+  .section-attendance .ref-history-card td:nth-child(8)::before{content:'Acciones'}
+  .section-attendance .ref-history-card td[colspan]{display:block;padding:10px!important;text-align:center!important;border:0!important}
+  .section-attendance .ref-history-card td[colspan]::before{content:none!important}
+  .section-attendance .ref-history-card td button{width:100%;min-height:34px!important}
+  .ref-mobile-schedule>.primary{width:100%;justify-self:stretch}
+}
+
+@media(max-width:430px){
+  .section-attendance .ref-history-card td{grid-template-columns:92px minmax(0,1fr)}
+}
