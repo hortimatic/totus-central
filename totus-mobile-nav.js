@@ -11,12 +11,14 @@
   const baseGoSub=window.goSub;
   if(typeof baseSet!=='function'||typeof baseRender!=='function'||typeof baseGoRoot!=='function'||typeof baseGoSub!=='function')return;
 
-  const PURCHASE_TABS=[['purchase-overview','Resumen'],['purchase-history','Historial'],['purchase-reports','Informes'],['purchase-audit','Auditoría']];
+  const PURCHASE_BASE=[['purchase-overview','Resumen'],['purchase-history','Historial'],['purchase-reports','Informes']];
   const LIBRARY_TABS=[['library-home','Tutoriales y documentos'],['questions','Consultas internas']];
   const LEGACY_PURCHASE={summary:'purchase-overview',history:'purchase-history',reports:'purchase-reports',audit:'purchase-audit'};
   const LEGACY_LIBRARY={tutorials:'library-home',queries:'questions'};
 
   function isAdminUser(){return typeof isSystemAdmin==='function'?isSystemAdmin():(typeof isAdmin==='function'&&isAdmin())}
+  function canManagePurchaseArea(){return typeof canManagePurchases==='function'?canManagePurchases():(typeof canManageTeam==='function'?canManageTeam():['admin','gerente'].includes(typeof currentRole==='function'?currentRole():''))}
+  function purchaseTabs(){return canManagePurchaseArea()?[...PURCHASE_BASE,['purchase-audit','Auditoría']]:PURCHASE_BASE}
   function currentEmployee(){return state.employeeContextUserId||(typeof me==='function'?me()?.id:'')||''}
   function syncContextDefaults(){
     if(!isAdminUser())return false;
@@ -67,7 +69,7 @@
   };
 
   window.renderSubnav=function(){
-    if(state.root==='purchases')return renderSubnavSet(PURCHASE_TABS);
+    if(state.root==='purchases')return renderSubnavSet(purchaseTabs());
     if(state.root==='library')return renderSubnavSet(LIBRARY_TABS);
     return baseRender.apply(this,arguments);
   };
@@ -76,6 +78,7 @@
     syncContextDefaults();
     if(root==='purchases'&&!sub)sub='purchase-overview';
     if(root==='library'&&!sub)sub='library-home';
+    if(root==='purchases'&&sub==='purchase-audit'&&!canManagePurchaseArea())sub='purchase-history';
     const out=baseGoRoot.call(this,root,sub);requestAnimationFrame(pruneDuplicateContextControls);return out;
   };
 
@@ -83,6 +86,7 @@
     syncContextDefaults();
     if(state.root==='purchases')sub=LEGACY_PURCHASE[sub]||sub;
     if(state.root==='library')sub=LEGACY_LIBRARY[sub]||sub;
+    if(state.root==='purchases'&&sub==='purchase-audit'&&!canManagePurchaseArea())sub='purchase-history';
     const out=baseGoSub.call(this,sub);requestAnimationFrame(pruneDuplicateContextControls);return out;
   };
 
