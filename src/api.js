@@ -77,4 +77,4 @@ export async function markNotification(id,acknowledge=false){return rpc('mark_te
 export async function insert(table,payload){const {data,error}=await sb.from(table).insert(payload).select().single();if(error)throw new Error(error.message);return data}
 export async function update(table,id,payload){const {data,error}=await sb.from(table).update(payload).eq('id',id).select().single();if(error)throw new Error(error.message);return data}
 export async function remove(table,id){const {error}=await sb.from(table).delete().eq('id',id);if(error)throw new Error(error.message)}
-export async function invokeAdmin(action,payload={}){const {data,error}=await sb.functions.invoke('team-admin',{body:{action,...payload}});if(error)throw new Error(error.message);if(data?.error)throw new Error(data.error);return data}
+export async function invokeAdmin(action,payload={}){const {data,error}=await sb.functions.invoke('totus-admin',{body:{action,...payload}});if(error)throw new Error(error.message);if(data?.error)throw new Error(data.error);return data}
