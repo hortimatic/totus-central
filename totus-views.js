@@ -1,6 +1,6 @@
 /* Totus Central · Vistas de trabajo
-   Composición única inspirada en la base visual: contexto estable, tarjetas equivalentes,
-   dos columnas de trabajo y operaciones secundarias en ventanas emergentes. */
+   Composición única: contexto estable, tarjetas equivalentes, dos columnas de trabajo
+   y operaciones secundarias en ventanas emergentes. */
 (function(){
   const systemAdmin=()=>typeof isSystemAdmin==='function'?isSystemAdmin():isAdmin();
   const manager=()=>typeof canManageTeam==='function'?canManageTeam():['admin','gerente'].includes(currentRole());
@@ -8,6 +8,7 @@
   const planner=()=>typeof canPlanTeam==='function'?canPlanTeam():supervisor();
   const purchaseManager=()=>typeof canManagePurchases==='function'?canManagePurchases():manager();
   const contextUid=()=>typeof employeeContextUserId==='function'?employeeContextUserId():me()?.id;
+  const mobileLayout=()=>window.innerWidth<=820;
 
   function pageHead(kicker,title,description,actions=''){
     return `<div class="ref-page-head"><div class="ref-page-copy">${kicker?`<div class="ref-kicker">${esc(kicker)}</div>`:''}<h1>${esc(title)}</h1>${description?`<p>${esc(description)}</p>`:''}</div>${actions?`<div class="ref-page-actions">${actions}</div>`:''}</div>`;
@@ -19,7 +20,6 @@
     return `<div class="section-head ref-modal-head"><div>${kicker?`<div class="ref-kicker">${esc(kicker)}</div>`:''}<h3>${esc(title)}</h3>${description?`<div class="small">${esc(description)}</div>`:''}</div><button class="ghost" onclick="closeModal()">Cerrar</button></div>`;
   }
 
-  /* Panel: elimina duplicidad de relojes/accesos y usa los widgets como tarjetas homogéneas. */
   window.personalPanelHtml=function(uid){
     const widgets=[];
     if(panelHas('alarms'))widgets.push(`<div class="ref-slot">${panelAlarmsHtml(uid)}</div>`);
@@ -34,7 +34,6 @@
     return `${pageHead('Panel de trabajo','Mi panel','Tareas, avisos, calendario y horas sin repetir los controles permanentes de la cabecera.',`<button class="secondary" onclick="customizePanel()">Configurar panel</button>`)}<div class="ref-dashboard-grid">${widgets.join('')||`<div class="empty-state big ref-span-2"><b>Tu panel está vacío</b><span>Activa solo los bloques que quieras consultar.</span><button class="primary" onclick="customizePanel()">Elegir bloques</button></div>`}</div>`;
   };
 
-  /* Alta/edición de tarea siempre en modal. */
   function setNewTaskDraft(){
     const loc=db.locations.find(x=>x.active!==false)?.id||null,cat=db.taskCategories.find(c=>c.active!==false)?.id||null,now=new Date();
     state.editTaskId=null;state.taskEditorContext='modal';state.taskDraft={title:'',category_id:cat,description:'',starts_at:inputDT(now),due_at:inputDT(new Date(now.getTime()+3600000)),assigned_to:db.people.find(p=>p.role!=='invitado'&&p.id!==me().id)?.id||me().id,location_id:loc,priority:'normal',is_private:true,estimated_minutes:30,reminder_minutes:Number(db.settings.task_rules?.default_reminder_minutes||15),requires_evidence:false,recurrence:{enabled:false,frequency:'weekly',interval:1,weekdays:[weekday1(now)],until:null,count:0,occurrence:1}};
@@ -43,7 +42,6 @@
   window.editTask=function(id){if(!planner())return openTaskCard(id);const t=db.tasks.find(x=>x.id===id);if(!t)return;state.editTaskId=id;state.taskEditorContext='modal';state.taskDraft={...t,starts_at:inputDT(t.starts_at),due_at:inputDT(t.due_at),recurrence:{enabled:false,frequency:'weekly',interval:1,weekdays:[],until:null,count:0,occurrence:1,...(t.recurrence||{})}};modal(taskEditorHtml())};
   window.cancelTaskEdit=function(){state.editTaskId=null;state.taskDraft=null;state.taskEditorContext=null;closeModal();if(state.root==='tasks'&&state.sub==='tasks')renderTasks()};
 
-  /* Tarjeta de tarea: información esencial y una sola acción principal. */
   window.taskCard=function(t){
     const p=person(t.assigned_to),mine=t.assigned_to===me().id,running=openTaskTime()?.task_id===t.id,suspended=openTaskInterruption(t.id,t.assigned_to),worked=taskWorkedSeconds(t.id,t.assigned_to),closed=['done','cancelled'].includes(t.status),ev=taskEvidence(t.id),canAct=mine&&canOperate()&&!closed;
     const action=canAct?(running?`<button class="primary" onclick="stopTaskTimer()">Pausar</button>`:suspended?`<button class="primary" onclick="resumeTask('${t.id}')">Reanudar</button>`:`<button class="primary" onclick="startTaskTimer('${t.id}')">Iniciar</button>`):'';
@@ -67,17 +65,19 @@
     return `${pageHead('Trabajo','Tareas','Busca, ejecuta y revisa tareas sin mezclar la planificación con la operativa.',actions)}<section class="card ref-filter-card"><div class="ref-filter-grid"><label><span>Buscar</span><input value="${esc(state.taskSearch||'')}" placeholder="Título, centro, categoría o persona" oninput="state.taskSearch=this.value;renderTasks()"></label><label><span>Estado</span><select onchange="state.taskStatusFilter=this.value;renderTasks()"><option value="open" ${filter==='open'?'selected':''}>Abiertas</option><option value="done" ${filter==='done'?'selected':''}>Completadas</option><option value="cancelled" ${filter==='cancelled'?'selected':''}>Canceladas</option><option value="all" ${filter==='all'?'selected':''}>Todas</option></select></label><div class="ref-result-count"><span>Resultado</span><b>${rows.length}</b></div></div></section><div class="ref-task-grid">${rows.slice(0,200).map(taskCard).join('')||'<div class="empty-state big ref-span-2"><b>Sin resultados</b><span>No hay tareas que coincidan con el filtro.</span></div>'}</div>`;
   };
 
-  /* Programación: editor principal visible, configuración secundaria fuera de la página. */
   window.openScheduleSettings=function(kind){if(!systemAdmin())return;const map={opening:()=>openingHoursAdminHtml(),breaks:()=>breakCatalogAdminHtml(),categories:()=>taskCategoryAdminHtml(),rules:()=>workRulesAdminHtml(),holidays:()=>holidayAdminPanelHtml()};const fn=map[kind];if(fn)modal(`${modalHead('Configuración','Ajustes de programación','Cambios globales reservados a administración.')}${fn()}`)};
+  window.openWeeklyScheduleModal=function(uid){
+    const can=manager(),u=person(uid)||me();state.scheduleUserId=uid;ensureScheduleSelection(uid);
+    modal(`${modalHead('Programación',`Horario semanal · ${u.name}`,'Turnos y jornada partida de la temporada seleccionada.')}${scheduleSeasonControls(uid,can)}<div class="ref-weekly-editor ref-weekly-editor-modal">${scheduleEditor(uid,can)}</div>${can?`<div class="actions"><button class="primary" onclick="saveSchedule()">Guardar horario</button><button class="secondary" onclick="newScheduleException('${uid}')">+ Excepción</button></div>`:''}`)
+  };
   window.scheduleHtml=function(){
     const uid=contextUid()||state.scheduleUserId||me().id,u=person(uid)||me(),can=manager(),hs=monthlyHourState(uid);state.scheduleUserId=uid;ensureScheduleSelection(uid);const period=schedulePeriods(uid).find(x=>(x.valid_from||'')===state.scheduleFrom&&(x.location_id||'')===(state.scheduleLocationId||'')),periodSummary=period?`${period.season_name||'Base'} · ${locationName(period.location_id)} · ${period.valid_from||''} → ${period.valid_to||'sin fin'}`:'Sin temporada guardada';
     const cfg=systemAdmin()?`<button class="secondary" onclick="openScheduleSettings('opening')">Apertura</button><button class="secondary" onclick="openScheduleSettings('breaks')">Paradas</button><button class="secondary" onclick="openScheduleSettings('holidays')">Festivos</button><button class="ghost" onclick="openScheduleSettings('rules')">Más ajustes</button>`:'';
-    const weekly=`${scheduleSeasonControls(uid,can)}<div class="ref-weekly-editor">${scheduleEditor(uid,can)}</div>${can?'<div class="actions"><button class="primary" onclick="saveSchedule()">Guardar horario</button><button class="secondary" onclick="newScheduleException(\''+uid+'\')">+ Excepción</button></div>':''}`;
+    const weekly=mobileLayout()?`<div class="ref-mobile-schedule"><div><span>Temporada actual</span><b>${esc(periodSummary)}</b></div><button class="primary" onclick="openWeeklyScheduleModal('${uid}')">Abrir horario semanal</button></div>`:`${scheduleSeasonControls(uid,can)}<div class="ref-weekly-editor">${scheduleEditor(uid,can)}</div>${can?`<div class="actions"><button class="primary" onclick="saveSchedule()">Guardar horario</button><button class="secondary" onclick="newScheduleException('${uid}')">+ Excepción</button></div>`:''}`;
     const objective=`<div class="ref-objective-row"><div><span>Objetivo</span><b>${fmtHours(hs.target)}</b></div><div><span>Realizado</span><b>${fmtHours(hs.worked)}</b></div></div><div class="form-grid ref-form-2"><label><span>Mes</span><input id="targetMonth" type="month" value="${monthKey(new Date()).slice(0,7)}"></label><label><span>Objetivo mensual · horas</span><input id="targetHours" type="number" min="0" step="0.25" value="${targetValueHours(uid)}" ${can?'':'disabled'}></label></div>${can?'<div class="actions"><button class="secondary" onclick="saveMonthlyTarget()">Guardar objetivo</button></div>':''}`;
     return `${pageHead('Planificación','Programación',`${u.name} · ${periodSummary}`,cfg)}<div class="ref-work-grid">${card('Horario semanal',weekly,{hint:'Temporada, turnos y jornada partida.',className:'ref-span-2'})}${card('Objetivo mensual',objective,{hint:'Seguimiento del mes sin alterar el registro real.'})}${card('Excepciones puntuales',`<div class="list ref-exception-list">${scheduleExceptionList(uid)}</div>`,{hint:'Cambios de un día, incidencias o ajustes temporales.'})}</div>`;
   };
 
-  /* Compras: resumen limpio; el alta vive en modal. */
   window.openPurchaseCreate=function(uid){if(!canRegisterPurchase())return;const rules=db.settings.employee_purchase_rules||{vat_pct:21,re_pct:5.2,store_discount_pct:10};modal(`${modalHead('Compras','Registrar compra','Completa únicamente los datos de esta operación.')}${purchaseForm(uid||me().id,rules)}`);requestAnimationFrame(()=>calcPurchasePreview())};
   window.purchaseOverviewHtml=function(){
     const uid=purchaseManager()?(state.purchaseUserId||''):me().id,rows=db.purchases.filter(x=>!uid||x.user_id===uid),total=rows.filter(x=>x.status!=='cancelled').reduce((a,x)=>a+Number(x.total||0),0),rules=db.settings.employee_purchase_rules||{vat_pct:21,re_pct:5.2,store_discount_pct:10},latest=[...rows].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,6),target=uid||me().id;
