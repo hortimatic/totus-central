@@ -6,7 +6,8 @@ const q=(table)=>supabase.from(table);
 export async function session(){return (await supabase.auth.getSession()).data.session||null}
 export async function signIn(email,password){return supabase.auth.signInWithPassword({email,password})}
 export async function signOut(){return supabase.auth.signOut()}
-export async function sendOtp(email){return supabase.auth.signInWithOtp({email,options:{shouldCreateUser:true}})}
+export async function sendOtp(email){const e=String(email||'').trim().toLowerCase();const ok=await rpc('is_team_email_authorized',{p_email:e});if(!ok)return {error:new Error('Este email no está autorizado en Totus Central.')};return supabase.auth.signInWithOtp({email:e,options:{shouldCreateUser:true}})}
+export async function activate(email,password){const e=String(email||'').trim().toLowerCase();if(String(password||'').length<8)return {error:new Error('La contraseña debe tener al menos 8 caracteres.')};const ok=await rpc('is_team_email_authorized',{p_email:e});if(!ok)return {error:new Error('Este email no está autorizado en Totus Central.')};return supabase.auth.signUp({email:e,password})}
 export async function resetPassword(email){return supabase.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]})}
 export async function currentMember(){const s=await session();if(!s)return null;let {data,error}=await q(T.members).select('*').or(`auth_user_id.eq.${s.user.id},email.ilike.${s.user.email}`).eq('active',true).limit(1).maybeSingle();if(error)throw error;if(data&&!data.auth_user_id){await supabase.rpc('bind_my_team_account');({data,error}=await q(T.members).select('*').eq('id',data.id).single());if(error)throw error}return data}
 export async function all(table,order='created_at',asc=false){let x=q(table).select('*');if(order)x=x.order(order,{ascending:asc});const {data,error}=await x;if(error)throw error;return data||[]}
@@ -16,13 +17,14 @@ export async function update(table,id,payload){const {data,error}=await q(table)
 export async function remove(table,id){const {error}=await q(table).delete().eq('id',id);if(error)throw error;return true}
 export async function upsert(table,payload,onConflict){const {data,error}=await q(table).upsert(payload,{onConflict}).select();if(error)throw error;return data}
 export async function rpc(name,args={}){const {data,error}=await supabase.rpc(name,args);if(error)throw error;return data}
-export async function dashboard(member){const uid=member.id,now=new Date().toISOString();const [attendance,tasks,notices,breaks,timers]=await Promise.all([
+export async function dashboard(member){const uid=member.id,now=new Date().toISOString();const [attendance,tasks,notices,breaks,timers,interruptions]=await Promise.all([
  q(T.attendance).select('*').eq('member_id',uid).is('clock_out_at',null).order('clock_in_at',{ascending:false}).limit(1),
  q(T.tasks).select('*').eq('assigned_to',uid).neq('status','completed').order('due_at',{ascending:true}),
  q(T.notifications).select('*').eq('target_member_id',uid).eq('status','active').order('created_at',{ascending:false}),
  q(T.breaks).select('*').eq('member_id',uid).is('end_at',null).order('start_at',{ascending:false}).limit(1),
- q(T.timers).select('*').eq('member_id',uid).is('end_at',null).order('start_at',{ascending:false}).limit(1)
-]);for(const r of [attendance,tasks,notices,breaks,timers])if(r.error)throw r.error;return {attendance:attendance.data?.[0]||null,tasks:tasks.data||[],notices:(notices.data||[]).filter(n=>!n.expires_at||n.expires_at>now),break:breaks.data?.[0]||null,timer:timers.data?.[0]||null}}
+ q(T.timers).select('*').eq('member_id',uid).is('end_at',null).order('start_at',{ascending:false}).limit(1),
+ q(T.interruptions).select('*').eq('member_id',uid).is('end_at',null).order('start_at',{ascending:false}).limit(1)
+]);for(const r of [attendance,tasks,notices,breaks,timers,interruptions])if(r.error)throw r.error;return {attendance:attendance.data?.[0]||null,tasks:tasks.data||[],notices:(notices.data||[]).filter(n=>!n.expires_at||n.expires_at>now),break:breaks.data?.[0]||null,timer:timers.data?.[0]||null,interruption:interruptions.data?.[0]||null}}
 export async function loadBase(){const [members,locations,memberLocations]=await Promise.all([all(T.members,'name',true),all(T.locations,'name',true),all(T.memberLocations,null)]);return {members,locations,memberLocations}}
 export async function clockIn(memberId,locationId){return insert(T.attendance,{member_id:memberId,location_id:locationId,clock_in_at:new Date().toISOString()})}
 export async function clockOut(){return rpc('clock_out_current')}
