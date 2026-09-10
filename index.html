@@ -27,6 +27,11 @@
   </div>
   <div id="modalHost"></div><div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
   <script src="./runtime-config.js"></script>
+  <script>
+    var mainNav=document.getElementById('mainNav'),pageTitle=document.getElementById('pageTitle'),pageSubtitle=document.getElementById('pageSubtitle'),subnav=document.getElementById('subnav'),workStatus=document.getElementById('workStatus'),loginForm=document.getElementById('loginForm'),loginStatus=document.getElementById('loginStatus'),loginEmail=document.getElementById('loginEmail'),loginPassword=document.getElementById('loginPassword'),activateAccess=document.getElementById('activateAccess'),resetPassword=document.getElementById('resetPassword'),togglePassword=document.getElementById('togglePassword'),logoutButton=document.getElementById('logoutButton'),refreshButton=document.getElementById('refreshButton'),menuButton=document.getElementById('menuButton'),sidebar=document.getElementById('sidebar');
+    Object.defineProperty(window,'pricingQuickForm',{configurable:true,get:function(){return document.getElementById('pricingQuickForm')}});
+    Object.defineProperty(window,'pricingResult',{configurable:true,get:function(){return document.getElementById('pricingResult')}});
+  </script>
   <script type="module" src="./src/main.js"></script>
   <script type="module" src="./src/pricing-enhance.js"></script>
 </body>
