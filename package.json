@@ -1,0 +1,1 @@
+{"private":true,"type":"module","scripts":{"qa":"node qa/render-smoke.mjs && node qa/static-contract.mjs"}}
