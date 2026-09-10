@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1930">
+  <title>Totus Central</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="boot" class="boot" aria-live="polite">Cargando Totus Central…</div>
+
+  <main id="loginView" class="login-view hidden">
+    <section class="login-card">
+      <div class="brand-mark">TC</div>
+      <div>
+        <h1>Totus Central</h1>
+        <p>Una sola entrada para trabajo, precios, compras y equipo.</p>
+      </div>
+      <form id="loginForm" class="form-stack" novalidate>
+        <label>Email
+          <input id="loginEmail" type="email" autocomplete="email" required placeholder="tu@email.com">
+        </label>
+        <label>Contraseña
+          <span class="password-row"><input id="loginPassword" type="password" autocomplete="current-password" required><button id="togglePassword" type="button" class="text-button">Mostrar</button></span>
+        </label>
+        <div id="loginStatus" class="form-status" role="status"></div>
+        <button class="primary wide" type="submit">Entrar</button>
+      </form>
+      <button id="resetPassword" class="text-button" type="button">He olvidado mi contraseña</button>
+    </section>
+  </main>
+
+  <div id="appView" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark small">TC</div>
+        <div><strong>Totus Central</strong><span id="sidebarStore">Equipo</span></div>
+      </div>
+      <nav id="mainNav" class="main-nav" aria-label="Navegación principal"></nav>
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="grow"><strong id="sidebarName">Usuario</strong><span id="sidebarRole"></span></div>
+        <button id="logoutButton" class="icon-button" type="button" title="Salir">↗</button>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <button id="menuButton" class="icon-button mobile-only" type="button" aria-label="Abrir menú">☰</button>
+        <div class="topbar-title"><h1 id="pageTitle">Panel</h1><p id="pageSubtitle"></p></div>
+        <div class="topbar-actions">
+          <div id="workStatus" class="status-pill">Sin jornada</div>
+          <button id="refreshButton" class="secondary" type="button">Actualizar</button>
+          <button id="headerAction" class="primary hidden" type="button"></button>
+        </div>
+      </header>
+      <div id="subnav" class="subnav hidden"></div>
+      <div id="page" class="page" tabindex="-1"></div>
+    </section>
+  </div>
+
+  <div id="modalHost"></div>
+  <div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./runtime-config.js"></script>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
