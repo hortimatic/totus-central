@@ -1,15 +1,23 @@
 # Totus Central
 
-Reconstrucción limpia iniciada el 10/09/2026.
+Aplicación interna de Hortimatic / NewOldSmok reescrita desde cero sobre Supabase.
 
-Aplicación interna para Hortimatic / NewOldSmok: trabajo, fichajes, tareas, calendario, programación, vacaciones, compras de empleados, usuarios, avisos, tutoriales/consultas, trazabilidad, backup y Totus Pricing integrado.
+## Runtime
+- `index.html`
+- `styles.css`
+- `runtime-config.js`
+- `src/core.js`
+- `src/data.js`
+- `src/views.js`
+- `src/backup.js`
+- `src/app.js`
 
-## Arquitectura
-- Frontend: HTML/CSS/JavaScript modular, sin framework y sin código heredado.
-- Backend: Supabase `qgyufbjytcewuevbketz` (Postgres, Auth y Storage).
-- Pricing: lógica reimplementada desde la especificación funcional aprobada; el repositorio independiente `totus-pricing-demo` no se modifica.
+## QA local
+```bash
+npm run qa
+```
 
-## Estado
-Construcción activa. No declarar candidato de producción hasta completar conexión Supabase, Auth, Storage, backup físico y QA final responsive/roles.
+## Backend
+Proyecto Supabase: `qgyufbjytcewuevbketz`
 
-No hay GitHub Actions habilitadas durante la fase de reconstrucción para evitar ejecuciones y correos automáticos innecesarios.
+La aplicación usa únicamente la clave pública de Supabase en `runtime-config.js`; no contiene service-role keys ni secretos privados.
